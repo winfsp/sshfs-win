@@ -1,0 +1,26 @@
+diff --git a/sshfs.c b/sshfs.c
+index ce30a0f..29d495f 100644
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -11,7 +11,9 @@
+ 
+ #include <fuse.h>
+ #include <fuse_opt.h>
++#if !defined(__CYGWIN__)
+ #include <fuse_lowlevel.h>
++#endif
+ #ifdef __APPLE__
+ #  include <fuse_darwin.h>
+ #endif
+@@ -4105,9 +4107,11 @@ int main(int argc, char *argv[])
+ 		if (!ch)
+ 			exit(1);
+ 
++#if !defined(__CYGWIN__)
+ 		res = fcntl(fuse_chan_fd(ch), F_SETFD, FD_CLOEXEC);
+ 		if (res == -1)
+ 			perror("WARNING: failed to set FD_CLOEXEC on fuse device");
++#endif
+ 
+ 		sshfs.op = cache_init(&sshfs_oper);
+ 		fuse = fuse_new(ch, &args, sshfs.op,

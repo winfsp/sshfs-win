@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd $(dirname "$0")/sshfs
+
+ln -s "`regtool -W get /HKLM/Software/WinFsp/InstallDir`" winfsp
+patch -p1 < ../sshfs.patch
+
+[ -f configure ] || autoreconf -i
+PKG_CONFIG_PATH=$(pwd)/winfsp/lib ./configure
