@@ -1,3 +1,15 @@
+diff --git a/configure.ac b/configure.ac
+index 65162d4..63da38f 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -49,6 +49,7 @@ have_fuse_opt_parse=no
+ oldlibs="$LIBS"
+ LIBS="$LIBS $SSHFS_LIBS"
+ AC_CHECK_FUNC([fuse_opt_parse], [have_fuse_opt_parse=yes])
++AC_CHECK_FUNC([fsp_fuse_opt_parse], [have_fuse_opt_parse=yes])
+ LIBS="$oldlibs"
+ if test "$have_fuse_opt_parse" = no -o "$osname" = darwin; then
+ 	CFLAGS="$CFLAGS -I${srcdir}/compat"
 diff --git a/sshfs.c b/sshfs.c
 index ce30a0f..29d495f 100644
 --- a/sshfs.c
