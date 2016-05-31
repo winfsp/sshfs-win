@@ -2,7 +2,7 @@
 
 cd $(dirname "$0")/sshfs
 
-ln -s "`regtool -W get /HKLM/Software/WinFsp/InstallDir`" winfsp
+ln -s "$(regtool -W get /HKLM/Software/WinFsp/InstallDir)" winfsp
 patch -p1 < ../sshfs.patch
 
 [ -f configure ] || autoreconf -i
