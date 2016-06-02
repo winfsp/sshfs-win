@@ -11,7 +11,7 @@ index 65162d4..63da38f 100644
  if test "$have_fuse_opt_parse" = no -o "$osname" = darwin; then
  	CFLAGS="$CFLAGS -I${srcdir}/compat"
 diff --git a/sshfs.c b/sshfs.c
-index ce30a0f..29d495f 100644
+index ce30a0f..75c2a2f 100644
 --- a/sshfs.c
 +++ b/sshfs.c
 @@ -11,7 +11,9 @@
@@ -24,7 +24,22 @@ index ce30a0f..29d495f 100644
  #ifdef __APPLE__
  #  include <fuse_darwin.h>
  #endif
-@@ -4105,9 +4107,11 @@ int main(int argc, char *argv[])
+@@ -4094,20 +4096,26 @@ int main(int argc, char *argv[])
+ 			foreground = 1;
+ 		}
+ 
++#if !defined(__CYGWIN__)
+ 		res = stat(mountpoint, &st);
+ 		if (res == -1) {
+ 			perror(mountpoint);
+ 			exit(1);
+ 		}
+ 		sshfs.mnt_mode = st.st_mode;
++#elif defined(__CYGWIN__)
++		sshfs.mnt_mode = S_IFDIR | 0755;
++#endif
+ 
+ 		ch = fuse_mount(mountpoint, &args);
  		if (!ch)
  			exit(1);
  
