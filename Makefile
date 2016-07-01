@@ -19,13 +19,14 @@ $(Status)/run-sshfs: $(Status)/root run-sshfs.c
 	touch $(Status)/run-sshfs
 
 $(Status)/root: $(Status)/make
-	mkdir -p $(RootDir)/bin $(RootDir)/dev/{mqueue,shm}
+	mkdir -p $(RootDir)/{bin,dev/{mqueue,shm},etc}
 	(ldd $(SrcDir)/sshfs/sshfs; for f in $(BinExtra); do ldd /usr/bin/$$f; done) |\
 		sed -n 's@^.*/usr/bin/\([^ ]*\).*$$@\1@p' |\
 		while read f; do cp /usr/bin/$$f $(RootDir)/bin; done
 	cp $(SrcDir)/sshfs/sshfs $(RootDir)/bin
 	strip $(RootDir)/bin/sshfs
 	for f in $(BinExtra); do cp /usr/bin/$$f $(RootDir)/bin; done
+	cp $(PrjDir)/fstab $(RootDir)/etc
 	touch $(Status)/root
 
 $(Status)/make: $(Status)/config

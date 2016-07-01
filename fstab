@@ -1,0 +1,2 @@
+none /cygdrive cygdrive binary,posix=0,user 0 0
+none /tmp usertemp binary,posix=0,user 0 0
