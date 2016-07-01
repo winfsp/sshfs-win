@@ -1,0 +1,32 @@
+diff --git a/sshfs.c b/sshfs.c
+index 3186867..63181e3 100644
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -271,7 +271,7 @@ struct sshfs {
+ 	unsigned outstanding_len;
+ 	unsigned max_outstanding_len;
+ 	pthread_cond_t outstanding_cond;
+-	int password_stdin;
++	int password_stdin, password_stdout;
+ 	char *password;
+ 	int ext_posix_rename;
+ 	int ext_statvfs;
+@@ -389,6 +389,7 @@ static struct fuse_opt sshfs_opts[] = {
+ 	SSHFS_OPT("follow_symlinks",   follow_symlinks, 1),
+ 	SSHFS_OPT("no_check_root",     no_check_root, 1),
+ 	SSHFS_OPT("password_stdin",    password_stdin, 1),
++	SSHFS_OPT("password_stdout",   password_stdout, 1),
+ 	SSHFS_OPT("delay_connect",     delay_connect, 1),
+ 	SSHFS_OPT("slave",             slave, 1),
+ 	SSHFS_OPT("disable_hardlink",  disable_hardlink, 1),
+@@ -1612,6 +1613,10 @@ static int sftp_init()
+ 
+ out:
+ 	buf_free(&buf);
++
++	if (sshfs.password_stdout)
++		puts(0 == res ? "OK" : "KO");
++
+ 	return res;
+ }
+ 
