@@ -39,13 +39,44 @@
         </Directory>
 
         <DirectoryRef Id="INSTALLDIR">
-            <Component Id="C.INSTALLDIR">
+            <Component Id="C.INSTALLDIR" Guid="{34645C63-B237-4B2B-B702-8EBBA626D604}">
                 <RegistryValue
                     Root="HKLM"
                     Key="[P.RegistryKey]"
                     Name="InstallDir"
                     Type="string"
-                    Value="[INSTALLDIR]" />
+                    Value="[INSTALLDIR]"
+                    KeyPath="yes" />
+            </Component>
+            <Component Id="C.sshfs_win.reg" Guid="{3EF97966-E49E-4A0B-B68D-5EB2BDA61C21}">
+                <RegistryKey
+                    Root="HKLM"
+                    Key="[P.LauncherRegistryKey]">
+                    <RegistryKey
+                        Key="sshfs">
+                        <RegistryValue
+                            Type="string"
+                            Name="Executable"
+                            Value="[INSTALLDIR]bin\sshfs-win.exe"
+                            KeyPath="yes" />
+                        <RegistryValue
+                            Type="string"
+                            Name="CommandLine"
+                            Value="%1 %2" />
+                        <RegistryValue
+                            Type="string"
+                            Name="Security"
+                            Value="D:P(A;;RPWPLC;;;WD)" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Credentials"
+                            Value="1" />
+                    </RegistryKey>
+                </RegistryKey>
             </Component>
         </DirectoryRef>
 
@@ -60,6 +91,7 @@
             InstallDefault="local"
             Absent="disallow">
             <ComponentRef Id="C.INSTALLDIR" />
+            <ComponentRef Id="C.sshfs_win.reg" />
             <ComponentGroupRef Id="C.Main" />
         </Feature>
 
