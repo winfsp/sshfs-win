@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
         "PATH=/bin",
     };
     struct passwd *passwd;
-    char idmap[64], volpfx[256], remote[256];
-    char *locuser, *userhost, *path, *p;
+    char idmap[64], volpfx[256], portopt[256], remote[256];
+    char *locuser, *userhost, *port, *path, *p;
 
     if (3 != argc)
         return 2;
@@ -55,18 +55,25 @@ int main(int argc, char *argv[])
     while ('/' == *p)
         p++;
 
-    /* parse instance name (syntax: [locuser=]user@host) */
+    /* parse instance name (syntax: [locuser=]user@host!port) */
     locuser = userhost = p;
+    port = "22";
     while (*p && '/' != *p)
     {
         if ('=' == *p)
             userhost = p + 1;
+        else if ('!' == *p)
+        {
+            *p = '\0';
+            port = p + 1;
+        }
         p++;
     }
     if (*p)
         *p++ = '\0';
     path = p;
 
+    snprintf(portopt, sizeof portopt, "-oPort=%s", port);
     snprintf(remote, sizeof remote, "%s:%s", userhost, path);
 
     /* get local user name */
@@ -85,7 +92,7 @@ int main(int argc, char *argv[])
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
 
-    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, remote, argv[2], (void *)0, environ);
+    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, argv[2], (void *)0, environ);
 
     return 1;
 }
