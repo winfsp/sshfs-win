@@ -32,9 +32,9 @@ This is a very simple project:
 
 ## License
 
-SSHFS-Win uses the same license as SSHFS, which is GPLv2.
+SSHFS-Win uses the same license as SSHFS, which is GPLv2. It interfaces with WinFsp which is AGPLv3.
 
-SSHFS-Win packages the following components:
+It also packages the following components:
 
 - Cygwin: LGPLv3
 - GLib2: LGPLv2
