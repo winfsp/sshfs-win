@@ -1,5 +1,5 @@
 diff --git a/sshfs.c b/sshfs.c
-index 824a103..78e1682 100644
+index 824a103..f5491c3 100644
 --- a/sshfs.c
 +++ b/sshfs.c
 @@ -270,7 +270,7 @@ struct sshfs {
@@ -19,13 +19,17 @@ index 824a103..78e1682 100644
  	SSHFS_OPT("delay_connect",     delay_connect, 1),
  	SSHFS_OPT("slave",             slave, 1),
  	SSHFS_OPT("disable_hardlink",  disable_hardlink, 1),
-@@ -1607,6 +1608,10 @@ static int sftp_init()
+@@ -1607,6 +1608,14 @@ static int sftp_init()
  
  out:
  	buf_free(&buf);
 +
 +	if (sshfs.password_stdout)
++	{
 +		puts(0 == res ? "OK" : "KO");
++		fclose(stdout);
++		//stdout = freopen("/dev/null", "w", stdout);
++	}
 +
  	return res;
  }
