@@ -7,6 +7,8 @@
     "-f",                               \
     "-opassword_stdin",                 \
     "-opassword_stdout",                \
+    "-orellinks",                       \
+    "-ofstypename=SSHFS",               \
     "-oUserKnownHostsFile=/dev/null",   \
     "-oStrictHostKeyChecking=no"
 
