@@ -21,7 +21,7 @@
             DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <Media Id="1" Cabinet="sshfs_win.cab" EmbedCab="yes" />
 
-        <Property Id="P.LauncherRegistryKey">SYSTEM\\CurrentControlSet\\Services\\WinFsp.Launcher\\Services</Property>
+        <Property Id="P.LauncherRegistryKey">Software\WinFsp\Services</Property>
         <Property Id="P.RegistryKey">Software\$(var.MyProductName)</Property>
         <Property Id="INSTALLDIR">
             <RegistrySearch

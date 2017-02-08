@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     static const char *environ[] =
     {
         "PATH=/bin",
+        "CYGFUSE=WinFsp",
+        0
     };
     struct passwd *passwd;
     char idmap[64], volpfx[256], portopt[256], remote[256];
