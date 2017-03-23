@@ -63,7 +63,7 @@ $(Status)/sshfs-win: $(Status)/root sshfs-win.c
 $(Status)/root: $(Status)/make
 	mkdir -p $(RootDir)/{bin,dev/{mqueue,shm},etc}
 	(cygcheck $(SrcDir)/sshfs/sshfs; for f in $(BinExtra); do cygcheck /usr/bin/$$f; done) |\
-		tr '\\' / | xargs cygpath -au | grep '^/usr/bin/' | sort | uniq |\
+		tr -d '\r' | tr '\\' / | xargs cygpath -au | grep '^/usr/bin/' | sort | uniq |\
 		while read f; do cp $$f $(RootDir)/bin; done
 	cp $(SrcDir)/sshfs/sshfs $(RootDir)/bin
 	strip $(RootDir)/bin/sshfs
