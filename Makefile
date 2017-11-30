@@ -3,8 +3,14 @@ MyCompanyName = "Navimatics Corporation"
 MyDescription = "SSHFS for Windows"
 MyVersion = 2.7.$(shell date '+%y%j')
 
+ifeq ($(shell uname -m),x86_64)
+	Arch = x64
+else
+	Arch = x86
+endif
+
 PrjDir	= $(shell pwd)
-BldDir	= .build
+BldDir	= .build/$(Arch)
 DistDir = $(BldDir)/dist
 SrcDir	= $(BldDir)/src
 RootDir	= $(BldDir)/root
@@ -24,7 +30,7 @@ $(Status)/done: $(Status)/dist
 
 $(Status)/dist: $(Status)/wix
 	mkdir -p $(DistDir)
-	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion).msi) $(DistDir)
+	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(Arch).msi) $(DistDir)
 	touch $(Status)/dist
 
 $(Status)/wix: $(Status)/sshfs-win
@@ -48,7 +54,7 @@ $(Status)/wix: $(Status)/sshfs-win
 		-o "$(shell cygpath -aw $(WixDir)/root.wixobj)"\
 		"$(shell cygpath -aw $(WixDir)/root.wxs)"
 	light -nologo\
-		-o $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion).msi)\
+		-o $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(Arch).msi)\
 		-ext WixUIExtension\
 		-b $(RootDir)\
 		$(shell cygpath -aw $(WixDir)/root.wixobj)\
