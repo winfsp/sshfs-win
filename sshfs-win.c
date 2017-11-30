@@ -30,17 +30,12 @@ static void pr_execl(const char *path, ...)
 int main(int argc, char *argv[])
 {
     static const char *sshfs = "/bin/sshfs.exe";
-    static const char *environ[] =
-    {
-        "PATH=/bin",
-        "CYGFUSE=WinFsp",
-        0
-    };
+    static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
     char idmap[64], volpfx[256], portopt[256], remote[256];
     char *locuser, *userhost, *port, *path, *p;
 
-    if (3 != argc)
+    if (3 > argc || argc > 4)
         return 2;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
@@ -60,12 +55,17 @@ int main(int argc, char *argv[])
         p++;
 
     /* parse instance name (syntax: [locuser=]user@host!port) */
-    locuser = userhost = p;
+    locuser = 0;
+    userhost = p;
     port = "22";
     while (*p && '/' != *p)
     {
         if ('=' == *p)
+        {
+            *p = '\0';
+            locuser = userhost;
             userhost = p + 1;
+        }
         else if ('!' == *p)
         {
             *p = '\0';
@@ -81,15 +81,32 @@ int main(int argc, char *argv[])
     snprintf(remote, sizeof remote, "%s:%s", userhost, path);
 
     /* get local user name */
-    p = locuser;
-    while (*p && '@' != *p && '=' != *p)
-        p++;
+    if (0 == locuser)
+    {
+        if (3 >= argc)
+        {
+            p = userhost;
+            while (*p && '@' != *p)
+                p++;
+            if (*p)
+            {
+                *p = '\0';
+                locuser = userhost;
+            }
+        }
+        else
+        {
+            /* translate backslash to '+' */
+            for (p = argv[3]; *p; p++)
+                if ('\\' == *p)
+                    *p = '+';
+            locuser = argv[3];
+        }
+    }
 
     snprintf(idmap, sizeof idmap, "-ouid=-1,gid=-1");
-    if (*p)
+    if (0 != locuser)
     {
-        *p = '\0';
-
         /* get uid/gid from local user name */
         passwd = getpwnam(locuser);
         if (0 != passwd)

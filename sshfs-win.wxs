@@ -62,7 +62,7 @@
                         <RegistryValue
                             Type="string"
                             Name="CommandLine"
-                            Value="%1 %2" />
+                            Value="%1 %2 %U" />
                         <RegistryValue
                             Type="string"
                             Name="Security"
