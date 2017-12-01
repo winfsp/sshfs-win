@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
     char idmap[64], volpfx[256], portopt[256], remote[256];
-    char *locuser, *userhost, *port, *path, *p;
+    char *locuser, *locuser_nodom, *userhost, *port, *path, *p;
 
     if (3 > argc || argc > 4)
         return 2;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         p++;
 
     /* parse instance name (syntax: [locuser=]user@host!port) */
-    locuser = 0;
+    locuser = locuser_nodom = 0;
     userhost = p;
     port = "22";
     while (*p && '/' != *p)
@@ -97,10 +97,13 @@ int main(int argc, char *argv[])
         else
         {
             /* translate backslash to '+' */
-            for (p = argv[3]; *p; p++)
-                if ('\\' == *p)
-                    *p = '+';
             locuser = argv[3];
+            for (p = locuser; *p; p++)
+                if ('\\' == *p)
+                {
+                    *p = '+';
+                    locuser_nodom = p + 1;
+                }
         }
     }
 
@@ -109,6 +112,8 @@ int main(int argc, char *argv[])
     {
         /* get uid/gid from local user name */
         passwd = getpwnam(locuser);
+        if (0 == passwd && 0 != locuser_nodom)
+            passwd = getpwnam(locuser_nodom);
         if (0 != passwd)
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
