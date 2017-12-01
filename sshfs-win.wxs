@@ -5,9 +5,13 @@
 <?if $(var.MyArch) = x64?>
     <?define UpgradeCode="$(var.UpgradeCode64)"?>
     <?define OtherUpgradeCode="$(var.UpgradeCode32)"?>
+    <?define ProgramFilesFolder="ProgramFiles64Folder"?>
+    <?define LauncherRegistryKey="Software\WOW6432Node\WinFsp\Services"?>
 <?else?>
     <?define UpgradeCode="$(var.UpgradeCode32)"?>
     <?define OtherUpgradeCode="$(var.UpgradeCode64)"?>
+    <?define ProgramFilesFolder="ProgramFilesFolder"?>
+    <?define LauncherRegistryKey="Software\WinFsp\Services"?>
 <?endif?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
@@ -39,7 +43,7 @@
             NOT OTHERINSTALLED
         </Condition>
 
-        <Property Id="P.LauncherRegistryKey">Software\WinFsp\Services</Property>
+        <Property Id="P.LauncherRegistryKey">$(var.LauncherRegistryKey)</Property>
         <Property Id="P.RegistryKey">Software\$(var.MyProductName)</Property>
         <Property Id="INSTALLDIR">
             <RegistrySearch
@@ -51,7 +55,7 @@
         </Property>
 
         <Directory Id="TARGETDIR" Name="SourceDir">
-            <Directory Id="ProgramFilesFolder">
+            <Directory Id="$(var.ProgramFilesFolder)">
                 <Directory Id="INSTALLDIR" Name="$(var.MyProductName)" />
             </Directory>
         </Directory>

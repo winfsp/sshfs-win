@@ -35,7 +35,7 @@ $(Status)/dist: $(Status)/wix
 $(Status)/wix: $(Status)/sshfs-win
 	mkdir -p $(WixDir)
 	cp sshfs-win.wxs $(WixDir)/
-	candle -nologo -arch x86 -pedantic\
+	candle -nologo -arch $(MyArch) -pedantic\
 		-dMyProductName=$(MyProductName)\
 		-dMyCompanyName=$(MyCompanyName)\
 		-dMyDescription=$(MyDescription)\
@@ -46,7 +46,7 @@ $(Status)/wix: $(Status)/sshfs-win
 	heat dir $(shell cygpath -aw $(RootDir))\
 		-nologo -dr INSTALLDIR -cg C.Main -srd -ke -sreg -gg -sfrag\
 		-o $(shell cygpath -aw $(WixDir)/root.wxs)
-	candle -nologo -arch x86 -pedantic\
+	candle -nologo -arch $(MyArch) -pedantic\
 		-dMyProductName=$(MyProductName)\
 		-dMyCompanyName=$(MyCompanyName)\
 		-dMyDescription=$(MyDescription)\
