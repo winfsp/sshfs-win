@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<?define UpgradeCode64="3576E993-BFE0-4707-B6F6-7F26BF88300B"?>
+<?define UpgradeCode32="DC1B144B-4B64-4245-BC57-959267714315"?>
+<?if $(var.MyArch) = x64?>
+    <?define UpgradeCode="$(var.UpgradeCode64)"?>
+    <?define OtherUpgradeCode="$(var.UpgradeCode32)"?>
+<?else?>
+    <?define UpgradeCode="$(var.UpgradeCode32)"?>
+    <?define OtherUpgradeCode="$(var.UpgradeCode64)"?>
+<?endif?>
+
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product
         Id="*"
@@ -6,7 +17,7 @@
         Manufacturer="$(var.MyCompanyName)"
         Version="$(var.MyVersion)"
         Language="1033"
-        UpgradeCode="3576E993-BFE0-4707-B6F6-7F26BF88300B">
+        UpgradeCode="$(var.UpgradeCode)">
 
         <Package
             Description="$(var.MyProductName) - $(var.MyDescription)"
@@ -20,6 +31,13 @@
             DisallowUpgradeErrorMessage="An older version of [ProductName] is already installed. You must uninstall it before you can install this version."
             DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
         <Media Id="1" Cabinet="sshfs_win.cab" EmbedCab="yes" />
+
+        <Property Id="OTHERINSTALLED">
+            <ProductSearch UpgradeCode="$(var.OtherUpgradeCode)" Minimum="0.0.0.0" />
+        </Property>
+        <Condition Message="A version of [ProductName] with a different computer architecture is already installed. You must uninstall it before you can install this version.">
+            NOT OTHERINSTALLED
+        </Condition>
 
         <Property Id="P.LauncherRegistryKey">Software\WinFsp\Services</Property>
         <Property Id="P.RegistryKey">Software\$(var.MyProductName)</Property>

@@ -2,15 +2,14 @@ MyProductName = "SSHFS-Win"
 MyCompanyName = "Navimatics Corporation"
 MyDescription = "SSHFS for Windows"
 MyVersion = 2.7.$(shell date '+%y%j')
-
 ifeq ($(shell uname -m),x86_64)
-	Arch = x64
+	MyArch = x64
 else
-	Arch = x86
+	MyArch = x86
 endif
 
 PrjDir	= $(shell pwd)
-BldDir	= .build/$(Arch)
+BldDir	= .build/$(MyArch)
 DistDir = $(BldDir)/dist
 SrcDir	= $(BldDir)/src
 RootDir	= $(BldDir)/root
@@ -30,7 +29,7 @@ $(Status)/done: $(Status)/dist
 
 $(Status)/dist: $(Status)/wix
 	mkdir -p $(DistDir)
-	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(Arch).msi) $(DistDir)
+	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(MyArch).msi) $(DistDir)
 	touch $(Status)/dist
 
 $(Status)/wix: $(Status)/sshfs-win
@@ -41,6 +40,7 @@ $(Status)/wix: $(Status)/sshfs-win
 		-dMyCompanyName=$(MyCompanyName)\
 		-dMyDescription=$(MyDescription)\
 		-dMyVersion=$(MyVersion)\
+		-dMyArch=$(MyArch)\
 		-o "$(shell cygpath -aw $(WixDir)/sshfs-win.wixobj)"\
 		"$(shell cygpath -aw $(WixDir)/sshfs-win.wxs)"
 	heat dir $(shell cygpath -aw $(RootDir))\
@@ -51,10 +51,11 @@ $(Status)/wix: $(Status)/sshfs-win
 		-dMyCompanyName=$(MyCompanyName)\
 		-dMyDescription=$(MyDescription)\
 		-dMyVersion=$(MyVersion)\
+		-dMyArch=$(MyArch)\
 		-o "$(shell cygpath -aw $(WixDir)/root.wixobj)"\
 		"$(shell cygpath -aw $(WixDir)/root.wxs)"
 	light -nologo\
-		-o $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(Arch).msi)\
+		-o $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(MyArch).msi)\
 		-ext WixUIExtension\
 		-b $(RootDir)\
 		$(shell cygpath -aw $(WixDir)/root.wixobj)\
