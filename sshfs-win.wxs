@@ -13,14 +13,14 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product
         Id="*"
-        Name="$(var.MyProductName)"
+        Name="$(var.MyProductName) ($(var.MyArch))"
         Manufacturer="$(var.MyCompanyName)"
         Version="$(var.MyVersion)"
         Language="1033"
         UpgradeCode="$(var.UpgradeCode)">
 
         <Package
-            Description="$(var.MyProductName) - $(var.MyDescription)"
+            Description="$(var.MyProductName) ($(var.MyArch)) - $(var.MyDescription)"
             InstallerVersion="200"
             Compressed="yes"
             InstallScope="perMachine" />
@@ -28,14 +28,14 @@
             Disallow="yes"
             AllowDowngrades="no"
             AllowSameVersionUpgrades="no"
-            DisallowUpgradeErrorMessage="An older version of [ProductName] is already installed. You must uninstall it before you can install this version."
-            DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+            DisallowUpgradeErrorMessage="An older version of $(var.MyProductName) is already installed. You must uninstall it before you can install this version."
+            DowngradeErrorMessage="A newer version of $(var.MyProductName) is already installed." />
         <Media Id="1" Cabinet="sshfs_win.cab" EmbedCab="yes" />
 
         <Property Id="OTHERINSTALLED">
             <ProductSearch UpgradeCode="$(var.OtherUpgradeCode)" Minimum="0.0.0.0" />
         </Property>
-        <Condition Message="A version of [ProductName] with a different computer architecture is already installed. You must uninstall it before you can install this version.">
+        <Condition Message="A version of $(var.MyProductName) with a different computer architecture is already installed. You must uninstall it before you can install this version.">
             NOT OTHERINSTALLED
         </Condition>
 
@@ -101,7 +101,7 @@
         <Feature
             Id="F.Main"
             Level="1"
-            Title="$(var.MyProductName) $(var.MyVersion)"
+            Title="$(var.MyProductName) ($(var.MyArch)) $(var.MyVersion)"
             Description="$(var.MyDescription)"
             Display="expand"
             ConfigurableDirectory="INSTALLDIR"
