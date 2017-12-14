@@ -2,7 +2,10 @@
 
 SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Windows. Under the hood it uses [Cygwin](https://cygwin.com) for the POSIX environment and [WinFsp](https://github.com/billziss-gh/winfsp) for the FUSE functionality.
 
-SSHFS-Win requires the latest version of WinFsp to be installed; you can find it here: http://www.secfs.net/winfsp/download/. It does not require Cygwin to be installed, all the necessary files are included in the SSHFS-Win installer.
+## How to install
+
+- Install the latest version of [WinFsp](https://github.com/billziss-gh/winfsp/releases/latest).
+- Install the latest version of [SSHFS-Win](https://github.com/billziss-gh/sshfs-win/releases/latest). Choose the x64 or x86 installer according to your computer's architecture.
 
 ## How to use
 
