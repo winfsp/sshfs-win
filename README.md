@@ -27,6 +27,10 @@ It is also possible to map the remote root directory by starting the `path` with
 
 You can use the Windows Explorer "Map Network Drive" functionality or you can use the `net use` command from the command line.
 
+## GUI front end
+
+[SiriKali](https://mhogomchungu.github.io/sirikali/) is a GUI front end for SSHFS-Win (and other file systems). Please report problems with SiriKali in its [issues](https://github.com/mhogomchungu/sirikali/issues) page.
+
 ## Project Organization
 
 This is a very simple project:
