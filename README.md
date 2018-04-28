@@ -25,6 +25,10 @@ It is also possible to map the remote root directory by starting the `path` with
 
     \\sshfs\billz@linux-host\\home\billz
 
+You can also mount the remote's root `/` directory using the following format:
+
+    \\sshfs\user@host\..\..
+
 You can use the Windows Explorer "Map Network Drive" functionality or you can use the `net use` command from the command line.
 
 ## GUI front end
