@@ -17,7 +17,7 @@ WixDir	= $(BldDir)/wix
 Status	= $(BldDir)/status
 BinExtra= ssh #bash ls mount
 
-export PATH := /cygdrive/c/Program Files (x86)/WiX Toolset v3.10/bin:$(PATH)
+export PATH := $(WIX)/bin:$(PATH)
 
 goal: $(Status) $(Status)/done
 
