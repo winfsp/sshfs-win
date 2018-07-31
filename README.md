@@ -10,6 +10,9 @@
     <a href="https://chocolatey.org/packages/sshfs">
         <img src="https://img.shields.io/badge/choco-install%20sshfs-black.svg?style=for-the-badge"/>
     </a>
+    <a href="https://github.com/mhogomchungu/sirikali/releases/latest">
+        <img src="https://img.shields.io/github/release/mhogomchungu/sirikali.svg?label=GUI%20Frontend&style=for-the-badge"/>
+    </a>
 </p>
 
 SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Windows. Under the hood it uses [Cygwin](https://cygwin.com) for the POSIX environment and [WinFsp](https://github.com/billziss-gh/winfsp) for the FUSE functionality.
@@ -45,7 +48,7 @@ You can use the Windows Explorer "Map Network Drive" functionality or you can us
 
 ## GUI front end
 
-[SiriKali](https://mhogomchungu.github.io/sirikali/) is a GUI front end for SSHFS-Win (and other file systems). Please report problems with SiriKali in its [issues](https://github.com/mhogomchungu/sirikali/issues) page.
+[SiriKali](https://mhogomchungu.github.io/sirikali/) is a GUI front end for SSHFS-Win (and other file systems). Instructions on setting up SiriKali for SSHFS-Win can be found at this [link](https://github.com/mhogomchungu/sirikali/wiki/Frequently-Asked-Questions#90-how-do-i-add-options-to-connect-to-an-ssh-server). Please report problems with SiriKali in its [issues](https://github.com/mhogomchungu/sirikali/issues) page.
 
 ## Project Organization
 
