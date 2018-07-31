@@ -1,4 +1,19 @@
-# SSHFS-Win - SSHFS for Windows
+<h1 align="center">
+    SSHFS-Win &middot; SSHFS for Windows
+    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fbillziss-gh%2Fwinfsp&text=Do%20you%20want%20to%20write%20a%20file%20system%20on%20Windows%3F%20WinFsp%20is%20well%20tested%2C%20very%20fast%20and%20easy%20to%20use%21&hashtags=windows%2Cfilesystem">
+        <img src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Share"/>
+    </a>
+</h1>
+
+<p align="center">
+    <b>Install</b><br>
+    <a href="https://github.com/billziss-gh/sshfs-win/releases/latest">
+        <img src="https://img.shields.io/github/release/billziss-gh/sshfs-win.svg?label=stable&style=for-the-badge"/>
+    </a>
+    <a href="https://chocolatey.org/packages/sshfs">
+        <img src="https://img.shields.io/badge/choco-install%20sshfs-black.svg?style=for-the-badge"/>
+    </a>
+</p>
 
 SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Windows. Under the hood it uses [Cygwin](https://cygwin.com) for the POSIX environment and [WinFsp](https://github.com/billziss-gh/winfsp) for the FUSE functionality.
 
