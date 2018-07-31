@@ -1,8 +1,5 @@
 <h1 align="center">
     SSHFS-Win &middot; SSHFS for Windows
-    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fbillziss-gh%2Fwinfsp&text=Do%20you%20want%20to%20write%20a%20file%20system%20on%20Windows%3F%20WinFsp%20is%20well%20tested%2C%20very%20fast%20and%20easy%20to%20use%21&hashtags=windows%2Cfilesystem">
-        <img src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Share"/>
-    </a>
 </h1>
 
 <p align="center">
