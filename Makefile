@@ -76,6 +76,7 @@ $(Status)/root: $(Status)/make
 	strip $(RootDir)/bin/sshfs
 	for f in $(BinExtra); do cp /usr/bin/$$f $(RootDir)/bin; done
 	cp $(PrjDir)/fstab $(RootDir)/etc
+	cp $(PrjDir)/nsswitch.conf $(RootDir)/etc
 	touch $(Status)/root
 
 $(Status)/make: $(Status)/config
