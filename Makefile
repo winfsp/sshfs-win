@@ -1,7 +1,7 @@
 MyProductName = "SSHFS-Win"
 MyCompanyName = "Navimatics Corporation"
 MyDescription = "SSHFS for Windows"
-MyVersion = 2.7.$(shell date '+%y%j')
+MyVersion = 3.2.$(shell date '+%y%j')
 ifeq ($(shell uname -m),x86_64)
 	MyArch = x64
 else
@@ -69,26 +69,23 @@ $(Status)/sshfs-win: $(Status)/root sshfs-win.c
 
 $(Status)/root: $(Status)/make
 	mkdir -p $(RootDir)/{bin,dev/{mqueue,shm},etc}
-	(cygcheck $(SrcDir)/sshfs/sshfs; for f in $(BinExtra); do cygcheck /usr/bin/$$f; done) |\
+	(cygcheck $(SrcDir)/sshfs/build/sshfs; for f in $(BinExtra); do cygcheck /usr/bin/$$f; done) |\
 		tr -d '\r' | tr '\\' / | xargs cygpath -au | grep '^/usr/bin/' | sort | uniq |\
 		while read f; do cp $$f $(RootDir)/bin; done
-	cp $(SrcDir)/sshfs/sshfs $(RootDir)/bin
+	cp $(SrcDir)/sshfs/build/sshfs $(RootDir)/bin
 	strip $(RootDir)/bin/sshfs
 	for f in $(BinExtra); do cp /usr/bin/$$f $(RootDir)/bin; done
 	cp -R $(PrjDir)/etc $(RootDir)
 	touch $(Status)/root
 
 $(Status)/make: $(Status)/config
-	cd $(SrcDir)/sshfs && make
+	cd $(SrcDir)/sshfs/build && ninja
 	touch $(Status)/make
 
-$(Status)/config: $(Status)/reconf
-	cd $(SrcDir)/sshfs && ./configure
+$(Status)/config: $(Status)/patch
+	mkdir -p $(SrcDir)/sshfs/build
+	cd $(SrcDir)/sshfs/build && meson ..
 	touch $(Status)/config
-
-$(Status)/reconf: $(Status)/patch
-	cd $(SrcDir)/sshfs && autoreconf -i
-	touch $(Status)/reconf
 
 $(Status)/patch: $(Status)/clone
 	cd $(SrcDir)/sshfs && for f in $(PrjDir)/patches/*.patch; do patch -p1 <$$f; done
