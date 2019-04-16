@@ -1,5 +1,5 @@
 The SSHFS-Win project is Copyright (C) Bill Zissimopoulos. It is licensed
-under the terms of the GPLv3.
+under the terms of the GPLv2+.
 
 -----------------------------------------------------------------------
 
