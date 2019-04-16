@@ -1,8 +1,8 @@
 diff --git a/sshfs.c b/sshfs.c
-index 4423e07..ed333e1 100644
+index 06a1ef3..e1e39e2 100644
 --- a/sshfs.c
 +++ b/sshfs.c
-@@ -275,7 +275,7 @@ struct sshfs {
+@@ -273,7 +273,7 @@ struct sshfs {
  	unsigned outstanding_len;
  	unsigned max_outstanding_len;
  	pthread_cond_t outstanding_cond;
@@ -11,7 +11,7 @@ index 4423e07..ed333e1 100644
  	char *password;
  	int ext_posix_rename;
  	int ext_statvfs;
-@@ -404,6 +404,7 @@ static struct fuse_opt sshfs_opts[] = {
+@@ -403,6 +403,7 @@ static struct fuse_opt sshfs_opts[] = {
  	SSHFS_OPT("follow_symlinks",   follow_symlinks, 1),
  	SSHFS_OPT("no_check_root",     no_check_root, 1),
  	SSHFS_OPT("password_stdin",    password_stdin, 1),
@@ -19,7 +19,7 @@ index 4423e07..ed333e1 100644
  	SSHFS_OPT("delay_connect",     delay_connect, 1),
  	SSHFS_OPT("slave",             slave, 1),
  	SSHFS_OPT("disable_hardlink",  disable_hardlink, 1),
-@@ -1537,6 +1538,14 @@ static int sftp_init()
+@@ -1532,6 +1533,14 @@ static int sftp_init()
  
  out:
  	buf_free(&buf);
