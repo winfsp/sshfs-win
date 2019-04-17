@@ -1,8 +1,64 @@
-#include <stdarg.h>
-#include <stdio.h>
+/**
+ * sshfs-win.c
+ *
+ * Copyright 2015-2019 Bill Zissimopoulos
+ */
+/*
+ * This file is part of SSHFS-Win.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */
+
 #include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
+static char *sshfs = "/bin/sshfs.exe";
+static char *sshfs_environ[] = { "PATH=/bin", 0 };
+
+#if 0
+#define execve pr_execv
+static void pr_execv(const char *path, char *argv[], ...)
+{
+    fprintf(stderr, "%s\n", path);
+    for (; 0 != *argv; argv++)
+        fprintf(stderr, "    %s\n", *argv);
+}
+#endif
+
+static void usage(void)
+{
+    fprintf(stderr,
+        "usage: sshfs-win cmd SSHFS_COMMAND_LINE\n"
+        "    SSHFS_COMMAND_LINE  command line to pass to sshfs\n"
+        "\n"
+        "usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]\n"
+        "    PREFIX              Windows UNC prefix (note single backslash)\n"
+        "                        \\sshfs[.r]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
+        "                        sshfs: remote home; sshfs.r: remote root\n"
+        "    LOCUSER             local user (DOMAIN+USERNAME)\n"
+        "    REMUSER             remote user\n"
+        "    HOST                remote host\n"
+        "    PORT                remote port\n"
+        "    PATH                remote path (relative to remote home or root)\n"
+        "    X:                  mount drive\n"
+        "    SSHFS_OPTIONS       additional options to pass to SSHFS\n");
+    exit(2);
+}
+
+static int do_cmd(int argc, char *argv[])
+{
+    execve(sshfs, argv + 1, sshfs_environ);
+    return 1;
+}
+
+static int do_svc(int argc, char *argv[])
+{
 #define SSHFS_ARGS                      \
     "-f",                               \
     "-opassword_stdin",                 \
@@ -12,31 +68,12 @@
     "-oUserKnownHostsFile=/dev/null",   \
     "-oStrictHostKeyChecking=no"
 
-#if 0
-#define execle pr_execl
-static void pr_execl(const char *path, ...)
-{
-    va_list ap;
-    const char *arg;
+    if (3 > argc || 200 < argc)
+        usage();
 
-    va_start(ap, path);
-    fprintf(stderr, "%s\n", path);
-    while (0 != (arg = va_arg(ap, const char *)))
-        fprintf(stderr, "    %s\n", arg);
-    va_end(ap);
-}
-#endif
-
-int main(int argc, char *argv[])
-{
-    static const char *sshfs = "/bin/sshfs.exe";
-    static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
     char idmap[64], volpfx[256], portopt[256], remote[256];
-    char *locuser, *locuser_nodom, *userhost, *port, *path, *p;
-
-    if (3 > argc || argc > 4)
-        return 2;
+    char *cls, *locuser, *locuser_nodom, *userhost, *port, *root, *path, *p;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
 
@@ -45,14 +82,18 @@ int main(int argc, char *argv[])
         if ('\\' == *p)
             *p = '/';
 
-    /* skip class name (\\sshfs\) */
+    /* skip class name (\\sshfs\ or \\sshfs.r\) */
     p = argv[1];
     while ('/' == *p)
         p++;
+    cls = p;
     while (*p && '/' != *p)
         p++;
+    if (*p)
+        *p++ = '\0';
     while ('/' == *p)
         p++;
+    root = 0 == strcmp("sshfs.r", cls) ? "/" : "";
 
     /* parse instance name (syntax: [locuser=]user@host!port) */
     locuser = locuser_nodom = 0;
@@ -78,7 +119,7 @@ int main(int argc, char *argv[])
     path = p;
 
     snprintf(portopt, sizeof portopt, "-oPort=%s", port);
-    snprintf(remote, sizeof remote, "%s:%s", userhost, path);
+    snprintf(remote, sizeof remote, "%s:%s%s", userhost, root, path);
 
     /* get local user name */
     if (0 == locuser)
@@ -118,7 +159,33 @@ int main(int argc, char *argv[])
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
 
-    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, argv[2], (void *)0, environ);
+    char *sshfs_argv[256] =
+    {
+        sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, argv[2], 0,
+    };
+    int i, j;
 
+    for (j = 0; 0 != sshfs_argv[j]; j++)
+        ;
+    for (i = 4; argc > i; i++, j++)
+        sshfs_argv[j] = argv[i];
+    sshfs_argv[j] = 0;
+
+    execve(sshfs, sshfs_argv, sshfs_environ);
+    return 1;
+
+#undef SSHFS_ARGS
+}
+
+int main(int argc, char *argv[])
+{
+    const char *mode = argv[1];
+
+    if (0 != mode && 0 == strcmp("cmd", mode))
+        return do_cmd(argc - 1, argv + 1);
+    if (0 != mode && 0 == strcmp("svc", mode))
+        return do_svc(argc - 1, argv + 1);
+
+    usage();
     return 1;
 }
