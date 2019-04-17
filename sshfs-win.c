@@ -51,9 +51,24 @@ static void usage(void)
     exit(2);
 }
 
+static void concat_argv(char *dst[], char *src[])
+{
+    for (; 0 != *dst; dst++)
+        ;
+    for (; 0 != (*dst = *src); dst++, src++)
+        ;
+}
+
 static int do_cmd(int argc, char *argv[])
 {
-    execve(sshfs, argv + 1, sshfs_environ);
+    char *sshfs_argv[256] =
+    {
+        sshfs, 0,
+    };
+
+    concat_argv(sshfs_argv, argv + 1);
+
+    execve(sshfs, sshfs_argv, sshfs_environ);
     return 1;
 }
 
@@ -163,13 +178,9 @@ static int do_svc(int argc, char *argv[])
     {
         sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, argv[2], 0,
     };
-    int i, j;
 
-    for (j = 0; 0 != sshfs_argv[j]; j++)
-        ;
-    for (i = 4; argc > i; i++, j++)
-        sshfs_argv[j] = argv[i];
-    sshfs_argv[j] = 0;
+    if (4 <= argc)
+        concat_argv(sshfs_argv, argv + 4);
 
     execve(sshfs, sshfs_argv, sshfs_environ);
     return 1;
