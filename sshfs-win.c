@@ -61,6 +61,9 @@ static void concat_argv(char *dst[], char *src[])
 
 static int do_cmd(int argc, char *argv[])
 {
+    if (200 < argc)
+        usage();
+
     char *sshfs_argv[256] =
     {
         sshfs, 0,
