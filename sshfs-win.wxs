@@ -130,6 +130,36 @@
                     </RegistryKey>
                 </RegistryKey>
             </Component>
+            <Component Id="C.sshfs.key.reg" Guid="{F8E1A2DE-2061-42AD-805F-33BF0F75DC36}">
+                <RegistryKey
+                    Root="HKLM"
+                    Key="[P.LauncherRegistryKey]">
+                    <RegistryKey
+                        Key="sshfs.key">
+                        <RegistryValue
+                            Type="string"
+                            Name="Executable"
+                            Value="[INSTALLDIR]bin\sshfs-win.exe"
+                            KeyPath="yes" />
+                        <RegistryValue
+                            Type="string"
+                            Name="CommandLine"
+                            Value="svc %1 %2 %U" />
+                        <RegistryValue
+                            Type="string"
+                            Name="Security"
+                            Value="D:P(A;;RPWPLC;;;WD)" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Credentials"
+                            Value="0" />
+                    </RegistryKey>
+                </RegistryKey>
+            </Component>
         </DirectoryRef>
 
         <Feature
@@ -145,6 +175,7 @@
             <ComponentRef Id="C.INSTALLDIR" />
             <ComponentRef Id="C.sshfs.reg" />
             <ComponentRef Id="C.sshfs.r.reg" />
+            <ComponentRef Id="C.sshfs.key.reg" />
             <ComponentGroupRef Id="C.Main" />
         </Feature>
 

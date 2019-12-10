@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 static char *sshfs = "/bin/sshfs.exe";
 static char *sshfs_environ[] = { "PATH=/bin", 0 };
@@ -59,6 +60,22 @@ static void concat_argv(char *dst[], char *src[])
         ;
 }
 
+static bool mustUseSSHKey(const char* registryName)
+{
+    bool mustUseSSHKey = false;
+    char fullPath[256];
+    snprintf(fullPath, sizeof fullPath, "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/WOW6432Node/WinFsp/Services/%s/Credentials", registryName);
+    FILE* credentialKey = fopen(fullPath, "r");
+    if (NULL != credentialKey)
+    {
+        char keyBuffer = 0;
+        fread(&keyBuffer, 1, 1, credentialKey);
+        mustUseSSHKey = 0 == keyBuffer;
+        fclose(credentialKey);
+    }
+    return mustUseSSHKey;
+}
+
 static int do_cmd(int argc, char *argv[])
 {
     if (200 < argc)
@@ -79,8 +96,6 @@ static int do_svc(int argc, char *argv[])
 {
 #define SSHFS_ARGS                      \
     "-f",                               \
-    "-opassword_stdin",                 \
-    "-opassword_stdout",                \
     "-orellinks",                       \
     "-ofstypename=SSHFS",               \
     "-oUserKnownHostsFile=/dev/null",   \
@@ -90,7 +105,7 @@ static int do_svc(int argc, char *argv[])
         usage();
 
     struct passwd *passwd;
-    char idmap[64], volpfx[256], portopt[256], remote[256];
+    char idmap[64], volpfx[256], portopt[256], remote[256], authParams[256];
     char *cls, *locuser, *locuser_nodom, *userhost, *port, *root, *path, *p;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
@@ -100,7 +115,7 @@ static int do_svc(int argc, char *argv[])
         if ('\\' == *p)
             *p = '/';
 
-    /* skip class name (\\sshfs\ or \\sshfs.r\) */
+    /* skip class name (\\sshfs\, \\sshfs.r\ or \\sshfs.key\) */
     p = argv[1];
     while ('/' == *p)
         p++;
@@ -177,9 +192,20 @@ static int do_svc(int argc, char *argv[])
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
 
+    /* Send IdentityFile parameter to sshfs if sshfs.key is in the path parameter and if windows registry key is set to 0.
+       Otherwise, send password_stdin and password_stdout */
+    if (mustUseSSHKey(cls) && 0 != passwd)
+    {
+        snprintf(authParams, sizeof authParams, "-oPasswordAuthentication=no,IdentityFile=\"%s/.ssh/id_rsa\"", passwd->pw_dir);
+    }
+    else
+    {
+        snprintf(authParams, sizeof authParams, "-opassword_stdin,password_stdout");
+    }
+
     char *sshfs_argv[256] =
     {
-        sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, argv[2], 0,
+        sshfs, SSHFS_ARGS, idmap, authParams, volpfx, portopt, remote, argv[2], 0,
     };
 
     if (4 <= argc)
