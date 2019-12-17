@@ -81,18 +81,17 @@ The complete UNC syntax is as follows:
 
     \\sshfs\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
     \\sshfs.r\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
-    \\sshfs.key\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
+    \\sshfs.k\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
 
 - `REMUSER` is the remote user (i.e. the user on the SSHFS host whose credentials are being used for access).
 - `HOST` is the SSHFS host.
 - `PORT` is the remote port on the SSHFS host (optional; default is 22).
-- `PATH` is the remote path. This is interpretted as follows:
+- `PATH` is the remote path. This is interpreted as follows:
     - The `sshfs` prefix maps to `HOST:~REMUSER/PATH` on the SSHFS host (i.e. relative to `REMUSER`'s home directory).
     - The `sshfs.r` prefix maps to `HOST:/PATH` on the SSHFS host (i.e. relative to the `HOST`'s root directory).
-    - The `sshfs.key` prefix maps to `HOST:~REMUSER/PATH` and use the ssh key in %USERPROFILE%/.ssh/id_rsa, where %USERPROFILE% correspond to the windows home directory of the user.
+    - The `sshfs.k` prefix maps to `HOST:~REMUSER/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa` (where `%USERPROFILE%` is the home directory of the local Windows user).
 - `LOCUSER` is the local Windows user (optional; `USERNAME` or `DOMAIN+USERNAME` format).
     - Please note that this functionality is rarely necessary with latest versions of WinFsp.
-
 
 ## GUI front end
 
@@ -116,8 +115,9 @@ usage: sshfs-win cmd SSHFS_COMMAND_LINE
 
 usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]
     PREFIX              Windows UNC prefix (note single backslash)
-                        \sshfs[.r|.key]\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
+                        \sshfs[.r|.k]\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
                         sshfs: remote home; sshfs.r: remote root
+                        sshfs.k: remote home with key authentication
     LOCUSER             local user (DOMAIN+USERNAME)
     REMUSER             remote user
     HOST                remote host

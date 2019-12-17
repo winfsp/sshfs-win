@@ -12,12 +12,12 @@
  * (at your option) any later version.
  */
 
+#include <fcntl.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 static char *sshfs = "/bin/sshfs.exe";
 static char *sshfs_environ[] = { "PATH=/bin", 0 };
@@ -40,8 +40,9 @@ static void usage(void)
         "\n"
         "usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]\n"
         "    PREFIX              Windows UNC prefix (note single backslash)\n"
-        "                        \\sshfs[.r]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
+        "                        \\sshfs[.r|k]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
         "                        sshfs: remote home; sshfs.r: remote root\n"
+        "                        sshfs.k: remote home with key authentication\n"
         "    LOCUSER             local user (DOMAIN+USERNAME)\n"
         "    REMUSER             remote user\n"
         "    HOST                remote host\n"
@@ -60,20 +61,23 @@ static void concat_argv(char *dst[], char *src[])
         ;
 }
 
-static bool mustUseSSHKey(const char* registryName)
+static int use_pass(const char *cls)
 {
-    bool mustUseSSHKey = false;
-    char fullPath[256];
-    snprintf(fullPath, sizeof fullPath, "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/WOW6432Node/WinFsp/Services/%s/Credentials", registryName);
-    FILE* credentialKey = fopen(fullPath, "r");
-    if (NULL != credentialKey)
+    char regpath[256];
+    int regfd;
+    uint32_t value = -1;
+
+    snprintf(regpath, sizeof regpath,
+        "/proc/registry32/HKEY_LOCAL_MACHINE/Software/WinFsp/Services/%s/Credentials", cls);
+
+    regfd = open(regpath, O_RDONLY);
+    if (-1 != regfd)
     {
-        char keyBuffer = 0;
-        fread(&keyBuffer, 1, 1, credentialKey);
-        mustUseSSHKey = 0 == keyBuffer;
-        fclose(credentialKey);
+        read(regfd, &value, sizeof value);
+        close(regfd);
     }
-    return mustUseSSHKey;
+
+    return 1 == value;
 }
 
 static int do_cmd(int argc, char *argv[])
@@ -104,8 +108,8 @@ static int do_svc(int argc, char *argv[])
     if (3 > argc || 200 < argc)
         usage();
 
-    struct passwd *passwd;
-    char idmap[64], volpfx[256], portopt[256], remote[256], authParams[256];
+    struct passwd *passwd = 0;
+    char idmap[64], authmeth[256], volpfx[256], portopt[256], remote[256];
     char *cls, *locuser, *locuser_nodom, *userhost, *port, *root, *path, *p;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
@@ -115,7 +119,7 @@ static int do_svc(int argc, char *argv[])
         if ('\\' == *p)
             *p = '/';
 
-    /* skip class name (\\sshfs\, \\sshfs.r\ or \\sshfs.key\) */
+    /* skip class name (\\sshfs\, \\sshfs.r\ or \\sshfs.k\) */
     p = argv[1];
     while ('/' == *p)
         p++;
@@ -192,20 +196,19 @@ static int do_svc(int argc, char *argv[])
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
 
-    /* Send IdentityFile parameter to sshfs if sshfs.key is in the path parameter and if windows registry key is set to 0.
-       Otherwise, send password_stdin and password_stdout */
-    if (mustUseSSHKey(cls) && 0 != passwd)
-    {
-        snprintf(authParams, sizeof authParams, "-oPasswordAuthentication=no,IdentityFile=\"%s/.ssh/id_rsa\"", passwd->pw_dir);
-    }
+    if (use_pass(cls))
+        snprintf(authmeth, sizeof authmeth,
+            "-opassword_stdin,password_stdout");
+    else if (0 != passwd)
+        snprintf(authmeth, sizeof authmeth,
+            "-oPasswordAuthentication=no,IdentityFile=%s/.ssh/id_rsa", passwd->pw_dir);
     else
-    {
-        snprintf(authParams, sizeof authParams, "-opassword_stdin,password_stdout");
-    }
+        snprintf(authmeth, sizeof authmeth,
+            "-oPasswordAuthentication=no");
 
     char *sshfs_argv[256] =
     {
-        sshfs, SSHFS_ARGS, idmap, authParams, volpfx, portopt, remote, argv[2], 0,
+        sshfs, SSHFS_ARGS, idmap, authmeth, volpfx, portopt, remote, argv[2], 0,
     };
 
     if (4 <= argc)

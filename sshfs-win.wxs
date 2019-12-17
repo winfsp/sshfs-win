@@ -130,12 +130,12 @@
                     </RegistryKey>
                 </RegistryKey>
             </Component>
-            <Component Id="C.sshfs.key.reg" Guid="{F8E1A2DE-2061-42AD-805F-33BF0F75DC36}">
+            <Component Id="C.sshfs.k.reg" Guid="{F8E1A2DE-2061-42AD-805F-33BF0F75DC36}">
                 <RegistryKey
                     Root="HKLM"
                     Key="[P.LauncherRegistryKey]">
                     <RegistryKey
-                        Key="sshfs.key">
+                        Key="sshfs.k">
                         <RegistryValue
                             Type="string"
                             Name="Executable"
@@ -175,7 +175,7 @@
             <ComponentRef Id="C.INSTALLDIR" />
             <ComponentRef Id="C.sshfs.reg" />
             <ComponentRef Id="C.sshfs.r.reg" />
-            <ComponentRef Id="C.sshfs.key.reg" />
+            <ComponentRef Id="C.sshfs.k.reg" />
             <ComponentGroupRef Id="C.Main" />
         </Feature>
 

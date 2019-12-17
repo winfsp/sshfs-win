@@ -1,5 +1,5 @@
 MyProductName = "SSHFS-Win"
-MyCompanyName = "Navimatics Corporation"
+MyCompanyName = "Navimatics LLC"
 MyDescription = "SSHFS for Windows"
 MyVersion = 3.5.$(shell date '+%y%j')
 ifeq ($(shell uname -m),x86_64)
