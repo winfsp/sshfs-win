@@ -201,10 +201,10 @@ static int do_svc(int argc, char *argv[])
             "-opassword_stdin,password_stdout");
     else if (0 != passwd)
         snprintf(authmeth, sizeof authmeth,
-            "-oPasswordAuthentication=no,IdentityFile=%s/.ssh/id_rsa", passwd->pw_dir);
+            "-oPreferredAuthentications=publickey,IdentityFile=%s/.ssh/id_rsa", passwd->pw_dir);
     else
         snprintf(authmeth, sizeof authmeth,
-            "-oPasswordAuthentication=no");
+            "-oPreferredAuthentications=publickey");
 
     char *sshfs_argv[256] =
     {
