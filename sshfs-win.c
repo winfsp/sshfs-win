@@ -21,6 +21,14 @@
 
 static char *sshfs = "/bin/sshfs.exe";
 static char *sshfs_environ[] = { "PATH=/bin", 0 };
+static const char *KEY_OPTION = "k";
+static const char *ROOT_OPTION = "r";
+
+struct UNC_data
+{
+    int key;
+    int root;
+};
 
 #if 0
 #define execve pr_execv
@@ -40,7 +48,7 @@ static void usage(void)
         "\n"
         "usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]\n"
         "    PREFIX              Windows UNC prefix (note single backslash)\n"
-        "                        \\sshfs[.r|k]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
+        "                        \\sshfs[.r][.k]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
         "                        sshfs: remote home; sshfs.r: remote root\n"
         "                        sshfs.k: remote home with key authentication\n"
         "    LOCUSER             local user (DOMAIN+USERNAME)\n"
@@ -80,6 +88,35 @@ static int use_pass(const char *cls)
     return 1 == value;
 }
 
+/**
+ * Enable an element of UNC_data structure according to the opt passed in parameter.
+ * @param opt The option to enable in UNC_data structure if recognized.
+ * @param options The UNC_data structure to modify according to the opt.
+ */
+static void determine_option(const char *opt, struct UNC_data *options)
+{
+    if (strncmp(KEY_OPTION, opt, strlen(KEY_OPTION)) == 0)
+        options->key = 1;
+    else if (strncmp(ROOT_OPTION, opt, strlen(ROOT_OPTION)) == 0)
+        options->root = 1;
+}
+
+/**
+ * Read the string passed in parameter until /, ., or NULL character is read.
+ * @param stringToParse A pointer to the character pointer to modify while parsing the segment.
+ * @return The position of the beginning of the option (The position initialy pointed by stringToParse).
+ */
+static char* parse_segment(char **stringToParse)
+{
+    char *p = *stringToParse;
+    while (*p && '.' != *p && '/' != *p)
+        p++;
+
+    char *option = *stringToParse;
+    *stringToParse = p;
+    return option;
+}
+
 static int do_cmd(int argc, char *argv[])
 {
     if (200 < argc)
@@ -109,8 +146,9 @@ static int do_svc(int argc, char *argv[])
         usage();
 
     struct passwd *passwd = 0;
+    struct UNC_data options = { .key = 0, .root = 0 };
     char idmap[64], authmeth[256], volpfx[256], portopt[256], remote[256];
-    char *cls, *locuser, *locuser_nodom, *userhost, *port, *root, *path, *p;
+    char *cls, *locuser, *locuser_nodom, *userhost, *port, *path, *p;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
 
@@ -119,18 +157,19 @@ static int do_svc(int argc, char *argv[])
         if ('\\' == *p)
             *p = '/';
 
-    /* skip class name (\\sshfs\, \\sshfs.r\ or \\sshfs.k\) */
+    /* parse options (syntax: //sshfs[.r][.k]/) */
+    /* skip first slash */
     p = argv[1];
-    while ('/' == *p)
+    while (*p && '/' == *p)
         p++;
-    cls = p;
-    while (*p && '/' != *p)
+    /* Assign cls and fill UNC_data structure */
+    cls = parse_segment(&p);
+    while ('.' == *p)
+    {
         p++;
-    if (*p)
-        *p++ = '\0';
-    while ('/' == *p)
-        p++;
-    root = 0 == strcmp("sshfs.r", cls) ? "/" : "";
+        determine_option(parse_segment(&p), &options);
+    }
+    *p++ = '\0';
 
     /* parse instance name (syntax: [locuser=]user@host!port) */
     locuser = locuser_nodom = 0;
@@ -156,7 +195,7 @@ static int do_svc(int argc, char *argv[])
     path = p;
 
     snprintf(portopt, sizeof portopt, "-oPort=%s", port);
-    snprintf(remote, sizeof remote, "%s:%s%s", userhost, root, path);
+    snprintf(remote, sizeof remote, "%s:%s%s", userhost, options.root ? "/" : "", path);
 
     /* get local user name */
     if (0 == locuser)
