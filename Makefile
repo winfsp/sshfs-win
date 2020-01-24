@@ -1,6 +1,7 @@
 MyProductName = "SSHFS-Win"
 MyCompanyName = "Navimatics LLC"
 MyDescription = "SSHFS for Windows"
+MyProductVersion = "2020"
 MyVersion = 3.5.$(shell date '+%y%j')
 ifeq ($(shell uname -m),x86_64)
 	MyArch = x64
@@ -39,6 +40,7 @@ $(Status)/wix: $(Status)/sshfs-win
 		-dMyProductName=$(MyProductName)\
 		-dMyCompanyName=$(MyCompanyName)\
 		-dMyDescription=$(MyDescription)\
+		-dMyProductVersion=$(MyProductVersion)\
 		-dMyVersion=$(MyVersion)\
 		-dMyArch=$(MyArch)\
 		-o "$(shell cygpath -aw $(WixDir)/sshfs-win.wixobj)"\
@@ -50,6 +52,7 @@ $(Status)/wix: $(Status)/sshfs-win
 		-dMyProductName=$(MyProductName)\
 		-dMyCompanyName=$(MyCompanyName)\
 		-dMyDescription=$(MyDescription)\
+		-dMyProductVersion=$(MyProductVersion)\
 		-dMyVersion=$(MyVersion)\
 		-dMyArch=$(MyArch)\
 		-o "$(shell cygpath -aw $(WixDir)/root.wixobj)"\
