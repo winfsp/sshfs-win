@@ -69,6 +69,19 @@ static void concat_argv(char *dst[], char *src[])
         ;
 }
 
+static void opt_escape(const char *opt, char *escaped, size_t size)
+{
+    const char *p = opt;
+    char *q = escaped, *endq = escaped + size;
+    for (; *p && endq > q + 1; p++, q++)
+    {
+        if (',' == *p || '\\' == *p)
+            *q++ = '\\';
+        *q = *p;
+    }
+    *q = '\0';
+}
+
 static int use_pass(const char *cls)
 {
     char regpath[256];
@@ -147,7 +160,8 @@ static int do_svc(int argc, char *argv[])
 
     struct passwd *passwd = 0;
     struct UNC_data options = { .key = 0, .root = 0 };
-    char idmap[64], authmeth[256], volpfx[256], portopt[256], remote[256];
+    char idmap[64], authmeth[64 + 1024], volpfx[256], portopt[256], remote[256];
+    char escaped[1024];
     char *cls, *locuser, *locuser_nodom, *userhost, *port, *path, *p;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
@@ -194,7 +208,8 @@ static int do_svc(int argc, char *argv[])
         *p++ = '\0';
     path = p;
 
-    snprintf(portopt, sizeof portopt, "-oPort=%s", port);
+    opt_escape(port, escaped, sizeof escaped);
+    snprintf(portopt, sizeof portopt, "-oPort=%s", escaped);
     snprintf(remote, sizeof remote, "%s:%s%s", userhost, options.root ? "/" : "", path);
 
     /* get local user name */
@@ -239,8 +254,11 @@ static int do_svc(int argc, char *argv[])
         snprintf(authmeth, sizeof authmeth,
             "-opassword_stdin,password_stdout");
     else if (0 != passwd)
+    {
+        opt_escape(passwd->pw_dir, escaped, sizeof escaped);
         snprintf(authmeth, sizeof authmeth,
-            "-oPreferredAuthentications=publickey,IdentityFile=%s/.ssh/id_rsa", passwd->pw_dir);
+            "-oPreferredAuthentications=publickey,IdentityFile=\"%s/.ssh/id_rsa\"", escaped);
+    }
     else
         snprintf(authmeth, sizeof authmeth,
             "-oPreferredAuthentications=publickey");

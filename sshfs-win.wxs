@@ -17,14 +17,14 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product
         Id="*"
-        Name="$(var.MyProductName) ($(var.MyArch))"
+        Name="$(var.MyProductName) $(var.MyProductVersion) ($(var.MyArch))"
         Manufacturer="$(var.MyCompanyName)"
         Version="$(var.MyVersion)"
         Language="1033"
         UpgradeCode="$(var.UpgradeCode)">
 
         <Package
-            Description="$(var.MyProductName) ($(var.MyArch)) - $(var.MyDescription)"
+            Description="$(var.MyProductName) $(var.MyProductVersion) ($(var.MyArch)) - $(var.MyDescription)"
             InstallerVersion="200"
             Compressed="yes"
             InstallScope="perMachine" />
@@ -195,7 +195,7 @@
         <Feature
             Id="F.Main"
             Level="1"
-            Title="$(var.MyProductName) ($(var.MyArch)) $(var.MyVersion)"
+            Title="$(var.MyProductName) $(var.MyProductVersion) ($(var.MyArch))"
             Description="$(var.MyDescription)"
             Display="expand"
             ConfigurableDirectory="INSTALLDIR"
