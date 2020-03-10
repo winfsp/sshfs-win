@@ -37,7 +37,7 @@ The first time you map a particular SSHFS path you will be prompted for the SSHF
 In order to unmap the drive, right-click on the drive icon in Windows Explorer and select Disconnect.
 
 <p align="center">
-<img src="http://www.secfs.net/winfsp/files/cap.gif" height="450"/>
+<img src="cap.gif" height="450"/>
 </p>
 
 ### Command Line
