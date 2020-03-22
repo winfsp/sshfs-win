@@ -93,7 +93,11 @@ The complete UNC syntax is as follows:
 - `LOCUSER` is the local Windows user (optional; `USERNAME` or `DOMAIN+USERNAME` format).
     - Please note that this functionality is rarely necessary with latest versions of WinFsp.
 
-## GUI front end
+## GUI front ends
+
+There are currently 2 GUI front ends for SSHFS-Win: [SiriKali](https://mhogomchungu.github.io/sirikali/) and [SSHFS-Win-Manager](https://github.com/evsar3/sshfs-win-manager).
+
+### SiriKali
 
 [SiriKali](https://mhogomchungu.github.io/sirikali/) is a GUI front end for SSHFS-Win (and other file systems). Instructions on setting up SiriKali for SSHFS-Win can be found at this [link](https://github.com/mhogomchungu/sirikali/wiki/Frequently-Asked-Questions#90-how-do-i-add-options-to-connect-to-an-ssh-server). Please report problems with SiriKali in its [issues](https://github.com/mhogomchungu/sirikali/issues) page.
 
@@ -102,6 +106,10 @@ SiriKali supports:
 - Password authentication.
 - Key Agents and KeePass 2.
 - Public key authentication.
+
+### SSHFS-Win-Manager
+
+[SSHFS-Win-Manager](https://github.com/evsar3/sshfs-win-manager) is a new GUI front end specifically for SSHFS-Win. It is currently in Beta testing. Please report problems with SSHFS-Win-Manager in its [issues](https://github.com/evsar3/sshfs-win-manager/issues) page.
 
 ## Advanced Usage
 
