@@ -1,0 +1,14 @@
+diff --git a/sshfs.c b/sshfs.c
+index 06a1ef3..dc772c7 100644
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -3446,6 +3446,9 @@ static int sshfs_opt_proc(void *data, const char *arg, int key,
+ 			 * Furthermore the mountpoint must NOT exist prior to mounting.
+ 			 * So we cannot use realpath(3).
+ 			 */
++			if ('\0' == arg[0] || ('*' == arg[0] && '\0' == arg[1]))
++				sshfs.mountpoint = strdup(arg);
++			else
+ 			if ((('A' <= arg[0] && arg[0] <= 'Z') || ('a' <= arg[0] && arg[0] <= 'z'))
+ 				&& ':' == arg[1] && '\0' == arg[2]) {
+ 				/* drive: make a copy */
