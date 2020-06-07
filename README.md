@@ -146,6 +146,7 @@ FUSE for Cygwin installed.
 
 To build, run `make` in a Cygwin environment, with the following packages installed (e.g. by the Cygwin installation program):
 * git
+* rsync
 * meson
 * patch
 * libglib2.0-devel

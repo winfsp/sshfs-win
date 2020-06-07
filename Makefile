@@ -96,7 +96,7 @@ $(Status)/patch: $(Status)/clone
 
 $(Status)/clone:
 	mkdir -p $(SrcDir)
-	git clone $(PrjDir)/sshfs $(SrcDir)/sshfs
+	rsync -ar $(PrjDir)/sshfs $(SrcDir)/
 	touch $(Status)/clone
 
 clean:
