@@ -142,6 +142,19 @@ $ sh WINFSP_INSTALL_DIR/opt/cygfuse/install.sh
 FUSE for Cygwin installed.
 ```
 
+## Building
+
+To build, run `make` in a Cygwin environment, with the following packages installed (e.g. by the Cygwin installation program):
+* git
+* meson
+* patch
+* libglib2.0-devel
+
+Also install:
+* FUSE for Cygwin (see above how to do this)
+* in your regular Windows environment: Wix Toolset, so that it can be found by Cygwin
+
+
 ## Project Organization
 
 This is a simple project:
