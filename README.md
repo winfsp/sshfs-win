@@ -138,22 +138,37 @@ usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]
 The `sshfs.exe` program can be used with an existing Cygwin installation, but it requires prior installation of FUSE for Cygwin on that Cygwin installation. FUSE for Cygwin is included with WinFsp and can be installed on a Cygwin installation by executing the command:
 
 ```
-$ sh WINFSP_INSTALL_DIR/opt/cygfuse/install.sh
+$ sh "$(cat /proc/registry32/HKEY_LOCAL_MACHINE/SOFTWARE/WinFsp/InstallDir | tr -d '\0')"/opt/cygfuse/install.sh
 FUSE for Cygwin installed.
 ```
 
 ## Building
 
-To build, run `make` in a Cygwin environment, with the following packages installed (e.g. by the Cygwin installation program):
-* git
-* meson
-* patch
-* libglib2.0-devel
+In order to build SSHFS-Win you will need Cygwin and the following Cygwin packages:
 
-Also install:
-* FUSE for Cygwin (see above how to do this)
-* in your regular Windows environment: Wix Toolset, so that it can be found by Cygwin
+- gcc-core
+- git
+- libglib2.0-devel
+- make
+- meson
+- patch
 
+You will also need:
+
+- FUSE for Cygwin. It is included with WinFsp and can be installed on a Cygwin installation by executing the command:
+
+    ```
+    $ sh "$(cat /proc/registry32/HKEY_LOCAL_MACHINE/SOFTWARE/WinFsp/InstallDir | tr -d '\0')"/opt/cygfuse/install.sh
+    FUSE for Cygwin installed.
+    ```
+- [Wix toolset](http://wixtoolset.org). This is a native Windows package that is used to build the SSHFS-Win MSI installer.
+
+To build:
+
+- Open a Cygwin prompt.
+- Change directory to the sshfs-win repository.
+- Issue `make`.
+- The sshfs-win repository includes the upstream SSHFS project as a submodule; if you have not already done so, you must initialize it with `git submodule update --init sshfs`.
 
 ## Project Organization
 
