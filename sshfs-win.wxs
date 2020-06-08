@@ -127,6 +127,10 @@
                             Type="integer"
                             Name="Credentials"
                             Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="sshfs.rootdir"
+                            Value="1" />
                     </RegistryKey>
                 </RegistryKey>
             </Component>
@@ -160,6 +164,40 @@
                     </RegistryKey>
                 </RegistryKey>
             </Component>
+            <Component Id="C.sshfs.kr.reg" Guid="{44B70FC4-B8C5-4B33-96EF-73D20C517702}">
+                <RegistryKey
+                    Root="HKLM"
+                    Key="[P.LauncherRegistryKey]">
+                    <RegistryKey
+                        Key="sshfs.kr">
+                        <RegistryValue
+                            Type="string"
+                            Name="Executable"
+                            Value="[INSTALLDIR]bin\sshfs-win.exe"
+                            KeyPath="yes" />
+                        <RegistryValue
+                            Type="string"
+                            Name="CommandLine"
+                            Value="svc %1 %2 %U" />
+                        <RegistryValue
+                            Type="string"
+                            Name="Security"
+                            Value="D:P(A;;RPWPLC;;;WD)" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Credentials"
+                            Value="0" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="sshfs.rootdir"
+                            Value="1" />
+                    </RegistryKey>
+                </RegistryKey>
+            </Component>
         </DirectoryRef>
 
         <Feature
@@ -176,6 +214,7 @@
             <ComponentRef Id="C.sshfs.reg" />
             <ComponentRef Id="C.sshfs.r.reg" />
             <ComponentRef Id="C.sshfs.k.reg" />
+            <ComponentRef Id="C.sshfs.kr.reg" />
             <ComponentGroupRef Id="C.Main" />
         </Feature>
 

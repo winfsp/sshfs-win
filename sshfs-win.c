@@ -74,23 +74,24 @@ static void opt_escape(const char *opt, char *escaped, size_t size)
     *q = '\0';
 }
 
-static int use_pass(const char *cls)
+static uint32_t reg_get(const char *cls, const char *name)
 {
     char regpath[256];
     int regfd;
     uint32_t value = -1;
 
     snprintf(regpath, sizeof regpath,
-        "/proc/registry32/HKEY_LOCAL_MACHINE/Software/WinFsp/Services/%s/Credentials", cls);
+        "/proc/registry32/HKEY_LOCAL_MACHINE/Software/WinFsp/Services/%s/%s", cls, name);
 
     regfd = open(regpath, O_RDONLY);
     if (-1 != regfd)
     {
-        read(regfd, &value, sizeof value);
+        if (sizeof value != read(regfd, &value, sizeof value))
+            value = -1;
         close(regfd);
     }
 
-    return 1 == value;
+    return value;
 }
 
 static int do_cmd(int argc, char *argv[])
@@ -144,7 +145,7 @@ static int do_svc(int argc, char *argv[])
         *p++ = '\0';
     while ('/' == *p)
         p++;
-    root = 0 == strcmp("sshfs.r", cls) ? "/" : "";
+    root = 1 == reg_get(cls, "sshfs.rootdir") ? "/" : "";
 
     /* parse instance name (syntax: [locuser=]user@host!port) */
     locuser = locuser_nodom = 0;
@@ -211,7 +212,7 @@ static int do_svc(int argc, char *argv[])
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
 
-    if (use_pass(cls))
+    if (1 == reg_get(cls, "Credentials"))
         snprintf(authmeth, sizeof authmeth,
             "-opassword_stdin,password_stdout");
     else if (0 != passwd)

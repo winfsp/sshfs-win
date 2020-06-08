@@ -1,7 +1,7 @@
 MyProductName = "SSHFS-Win"
 MyCompanyName = "Navimatics LLC"
 MyDescription = "SSHFS for Windows"
-MyProductVersion = "2020.1"
+MyProductVersion = "2020.1 Beta1"
 MyVersion = 3.5.$(shell date '+%y%j')
 ifeq ($(shell uname -m),x86_64)
 	MyArch = x64
@@ -33,7 +33,7 @@ $(Status)/dist: $(Status)/wix
 	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(MyArch).msi) $(DistDir)
 	touch $(Status)/dist
 
-$(Status)/wix: $(Status)/sshfs-win
+$(Status)/wix: $(Status)/sshfs-win sshfs-win.wxs
 	mkdir -p $(WixDir)
 	cp sshfs-win.wxs $(WixDir)/
 	candle -nologo -arch $(MyArch) -pedantic\
