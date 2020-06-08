@@ -192,8 +192,13 @@ static int do_svc(int argc, char *argv[])
         }
         else
         {
-            /* translate backslash to '+' */
             locuser = argv[3];
+            /* Windows surrounds non-ascii usernames with quotes before passing them to sshfs-win */
+            if (locuser[0] == '"'){
+                ++locuser;                         /* remove the heading quote... */
+                locuser[strlen(locuser)-1] = 0;    /* ...and the trailing one     */
+            }
+            /* translate backslash to '+' */
             for (p = locuser; *p; p++)
                 if ('\\' == *p)
                 {
