@@ -3,9 +3,12 @@
 </h1>
 
 <p align="center">
-    <b>Install</b><br>
+    <b>Download</b><br>
     <a href="https://github.com/billziss-gh/sshfs-win/releases/latest">
         <img src="https://img.shields.io/github/release/billziss-gh/sshfs-win.svg?label=stable&style=for-the-badge"/>
+    </a>
+    <a href="https://github.com/billziss-gh/sshfs-win/releases">
+        <img src="https://img.shields.io/github/release/billziss-gh/sshfs-win/all.svg?label=latest&colorB=e52e4b&style=for-the-badge"/>
     </a>
     <!-- a href="https://chocolatey.org/packages/sshfs">
         <img src="https://img.shields.io/badge/choco-install%20sshfs-black.svg?style=for-the-badge"/>
