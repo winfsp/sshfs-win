@@ -1,0 +1,5 @@
+#!/bin/bash
+
+KitsRoot="$(regtool -q get '/HKLM/SOFTWARE/Microsoft/Windows Kits/Installed Roots/KitsRoot10')"
+KitsInst="$(regtool -q list -k '/HKLM/SOFTWARE/Microsoft/Windows Kits/Installed Roots' | grep ^10 | sort | tail -1)"
+"$KitsRoot/bin/$KitsInst/x64/signtool.exe" "$@"

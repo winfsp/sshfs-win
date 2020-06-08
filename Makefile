@@ -9,6 +9,9 @@ else
 	MyArch = x86
 endif
 
+CertIssuer = "DigiCert"
+CrossCert = "DigiCert High Assurance EV Root CA.crt"
+
 PrjDir	= $(shell pwd)
 BldDir	= .build/$(MyArch)
 DistDir = $(BldDir)/dist
@@ -31,6 +34,15 @@ $(Status)/done: $(Status)/dist
 $(Status)/dist: $(Status)/wix
 	mkdir -p $(DistDir)
 	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(MyArch).msi) $(DistDir)
+	tools/signtool sign \
+		/ac tools/$(CrossCert) \
+		/i $(CertIssuer) \
+		/n $(MyCompanyName) \
+		/d $(MyDescription) \
+		/fd sha1 \
+		/t http://timestamp.digicert.com \
+		'$(shell cygpath -aw $(DistDir)/sshfs-win-$(MyVersion)-$(MyArch).msi)' || \
+		echo "SIGNING FAILED! The product has been successfully built, but not signed." 1>&2
 	touch $(Status)/dist
 
 $(Status)/wix: $(Status)/sshfs-win sshfs-win.wxs
