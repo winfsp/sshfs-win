@@ -7,11 +7,18 @@
     <a href="https://github.com/billziss-gh/sshfs-win/releases/latest">
         <img src="https://img.shields.io/github/release/billziss-gh/sshfs-win.svg?label=stable&style=for-the-badge"/>
     </a>
-    <a href="https://chocolatey.org/packages/sshfs">
+    <!-- a href="https://chocolatey.org/packages/sshfs">
         <img src="https://img.shields.io/badge/choco-install%20sshfs-black.svg?style=for-the-badge"/>
-    </a>
+    </a -->
+</p>
+
+<p align="center">
+    <b>GUI Frontends</b><br>
     <a href="https://github.com/mhogomchungu/sirikali/releases/latest">
-        <img src="https://img.shields.io/github/release/mhogomchungu/sirikali.svg?label=GUI%20Frontend&style=for-the-badge"/>
+        <img src="https://img.shields.io/github/release/mhogomchungu/sirikali.svg?label=SiriKali&style=for-the-badge"/>
+    </a>
+    <a href="https://github.com/evsar3/sshfs-win-manager/releases/latest">
+        <img src="https://img.shields.io/github/release/evsar3/sshfs-win-manager.svg?label=SSHFS-Win-Manager&style=for-the-badge"/>
     </a>
 </p>
 
@@ -82,6 +89,7 @@ The complete UNC syntax is as follows:
     \\sshfs\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
     \\sshfs.r\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
     \\sshfs.k\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
+    \\sshfs.kr\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
 
 - `REMUSER` is the remote user (i.e. the user on the SSHFS host whose credentials are being used for access).
 - `HOST` is the SSHFS host.
@@ -90,6 +98,7 @@ The complete UNC syntax is as follows:
     - The `sshfs` prefix maps to `HOST:~REMUSER/PATH` on the SSHFS host (i.e. relative to `REMUSER`'s home directory).
     - The `sshfs.r` prefix maps to `HOST:/PATH` on the SSHFS host (i.e. relative to the `HOST`'s root directory).
     - The `sshfs.k` prefix maps to `HOST:~REMUSER/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa` (where `%USERPROFILE%` is the home directory of the local Windows user).
+    - The `sshfs.kr` prefix maps to `HOST:/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa`.
 - `LOCUSER` is the local Windows user (optional; `USERNAME` or `DOMAIN+USERNAME` format).
     - Please note that this functionality is rarely necessary with latest versions of WinFsp.
 
@@ -104,12 +113,17 @@ There are currently 2 GUI front ends for SSHFS-Win: [SiriKali](https://mhogomchu
 SiriKali supports:
 
 - Password authentication.
-- Key Agents and KeePass 2.
 - Public key authentication.
+- Key Agents and KeePass 2.
 
 ### SSHFS-Win-Manager
 
-[SSHFS-Win-Manager](https://github.com/evsar3/sshfs-win-manager) is a new GUI front end specifically for SSHFS-Win. It is currently in Beta testing. Please report problems with SSHFS-Win-Manager in its [issues](https://github.com/evsar3/sshfs-win-manager/issues) page.
+[SSHFS-Win-Manager](https://github.com/evsar3/sshfs-win-manager) is a new GUI front end specifically for SSHFS-Win with a user-friendly and intuitive interface. SSHFS-Win-Manager integrates well with Windows and can be closed to the system tray. Please report problems with SSHFS-Win-Manager in its [issues](https://github.com/evsar3/sshfs-win-manager/issues) page.
+
+SSHFS-Win-Manager supports:
+
+- Password authentication.
+- Public key authentication.
 
 ## Advanced Usage
 
@@ -123,9 +137,11 @@ usage: sshfs-win cmd SSHFS_COMMAND_LINE
 
 usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]
     PREFIX              Windows UNC prefix (note single backslash)
-                        \sshfs[.r|.k]\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
-                        sshfs: remote home; sshfs.r: remote root
-                        sshfs.k: remote home with key authentication
+                        \sshfs[.SUFFIX]\[LOCUSER=]REMUSER@HOST[!PORT][\PATH]
+                        sshfs: remote user home dir
+                        sshfs.r: remote root dir
+                        sshfs.k: remote user home dir with key authentication
+                        sshfs.kr: remote root dir with key authentication
     LOCUSER             local user (DOMAIN+USERNAME)
     REMUSER             remote user
     HOST                remote host
@@ -141,6 +157,16 @@ The `sshfs.exe` program can be used with an existing Cygwin installation, but it
 $ sh "$(cat /proc/registry32/HKEY_LOCAL_MACHINE/SOFTWARE/WinFsp/InstallDir | tr -d '\0')"/opt/cygfuse/install.sh
 FUSE for Cygwin installed.
 ```
+
+## Project Organization
+
+This is a simple project:
+
+- `sshfs` is a submodule pointing to the original SSHFS project.
+- `sshfs-win.c` is a simple wrapper around the sshfs program that is used to implement the "Map Network Drive" functionality.
+- `sshfs-win.wxs` is a the Wix file that describes the SSHFS-Win installer.
+- `patches` is a directory with a couple of simple patches over SSHFS.
+- `Makefile` drives the overall process of building SSHFS-Win and packaging it into an MSI.
 
 ## Building
 
@@ -169,16 +195,6 @@ To build:
 - Change directory to the sshfs-win repository.
 - Issue `make`.
 - The sshfs-win repository includes the upstream SSHFS project as a submodule; if you have not already done so, you must initialize it with `git submodule update --init sshfs`.
-
-## Project Organization
-
-This is a simple project:
-
-- `sshfs` is a submodule pointing to the original SSHFS project.
-- `sshfs-win.c` is a simple wrapper around the sshfs program that is used to implement the "Map Network Drive" functionality.
-- `sshfs-win.wxs` is a the Wix file that describes the SSHFS-Win installer.
-- `patches` is a directory with a couple of simple patches over SSHFS.
-- `Makefile` drives the overall process of building SSHFS-Win and packaging it into an MSI.
 
 ## License
 

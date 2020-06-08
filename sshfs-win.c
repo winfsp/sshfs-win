@@ -40,9 +40,11 @@ static void usage(void)
         "\n"
         "usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]\n"
         "    PREFIX              Windows UNC prefix (note single backslash)\n"
-        "                        \\sshfs[.r|k]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
-        "                        sshfs: remote home; sshfs.r: remote root\n"
-        "                        sshfs.k: remote home with key authentication\n"
+        "                        \\sshfs[.SUFFIX]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
+        "                        sshfs: remote user home dir\n"
+        "                        sshfs.r: remote root dir\n"
+        "                        sshfs.k: remote user home dir with key authentication\n"
+        "                        sshfs.kr: remote root dir with key authentication\n"
         "    LOCUSER             local user (DOMAIN+USERNAME)\n"
         "    REMUSER             remote user\n"
         "    HOST                remote host\n"
@@ -134,7 +136,7 @@ static int do_svc(int argc, char *argv[])
         if ('\\' == *p)
             *p = '/';
 
-    /* skip class name (\\sshfs\, \\sshfs.r\ or \\sshfs.k\) */
+    /* skip class name */
     p = argv[1];
     while ('/' == *p)
         p++;
