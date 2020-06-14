@@ -103,7 +103,11 @@ $(Status)/config: $(Status)/patch
 	touch $(Status)/config
 
 $(Status)/patch: $(Status)/clone
-	cd $(SrcDir)/sshfs && for f in $(PrjDir)/patches/*.patch; do patch --binary -p1 <$$f; done
+	cd $(SrcDir)/sshfs &&                      \
+	for f in $(PrjDir)/patches/*.patch; do     \
+		patch -p1          <$$f >/dev/null ||  \
+		patch -p1 --binary <$$f;               \
+	done
 	touch $(Status)/patch
 
 $(Status)/clone:
