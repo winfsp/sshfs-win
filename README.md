@@ -176,7 +176,7 @@ This is a simple project:
 In order to build SSHFS-Win you will need Cygwin and the following Cygwin packages:
 
 - gcc-core
-- git
+- git (warning: also having git-for-windows installed in your regular Windows installation can lead to unexpected errors from `git`)
 - libglib2.0-devel
 - make
 - meson
