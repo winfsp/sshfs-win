@@ -192,8 +192,18 @@ static int do_svc(int argc, char *argv[])
         }
         else
         {
-            /* translate backslash to '+' */
             locuser = argv[3];
+            /* the Cygwin runtime does not remove double quotes around args with non-ASCII chars */
+            if (locuser[0] == '"')
+            {
+                size_t len = strlen(locuser);
+                if (len >= 2 && locuser[len - 1] == '"')
+                {
+                    locuser[len - 1] = '\0';    /* remove the trailing quote... */
+                    ++locuser;                  /* ...and the heading one       */
+                }
+            }
+            /* translate backslash to '+' */
             for (p = locuser; *p; p++)
                 if ('\\' == *p)
                 {
