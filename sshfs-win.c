@@ -193,10 +193,15 @@ static int do_svc(int argc, char *argv[])
         else
         {
             locuser = argv[3];
-            /* Windows surrounds non-ascii usernames with quotes before passing them to sshfs-win */
-            if (locuser[0] == '"'){
-                ++locuser;                         /* remove the heading quote... */
-                locuser[strlen(locuser)-1] = 0;    /* ...and the trailing one     */
+            /* the Cygwin runtime does not remove double quotes around args with non-ASCII chars */
+            if (locuser[0] == '"')
+            {
+                size_t len = strlen(locuser);
+                if (len >= 2 && locuser[len - 1] == '"')
+                {
+                    locuser[len - 1] = '\0';    /* remove the trailing quote... */
+                    ++locuser;                  /* ...and the heading one       */
+                }
             }
             /* translate backslash to '+' */
             for (p = locuser; *p; p++)
