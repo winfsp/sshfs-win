@@ -1,0 +1,18 @@
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -3462,6 +3462,15 @@
+ 				&& ':' == arg[1] && '\0' == arg[2]) {
+ 				/* drive: make a copy */
+ 				sshfs.mountpoint = strdup(arg);
++			} else
++			if ('\\' == arg[0] && '\\' == arg[1] &&
++			    ('.' == arg[2] || '?' == arg[2]) &&
++			    '\\' == arg[3] && (
++					('A' <= arg[4] && arg[4] <= 'Z') ||
++					('a' <= arg[4] && arg[4] <= 'z')
++				) &&
++				':' == arg[5] && '\0' == arg[6]) {
++				sshfs.mountpoint = strdup(arg);
+ 			} else {
+ 				/* path: split into dirname, basename and check dirname */
+ 				char *dir;
