@@ -70,6 +70,9 @@
                     Value="[INSTALLDIR]"
                     KeyPath="yes" />
             </Component>
+            <Component Id="C.License.txt">
+                <File Name="License.txt" Source="License.txt" KeyPath="yes" />
+            </Component>
             <Component Id="C.sshfs.reg" Guid="{3EF97966-E49E-4A0B-B68D-5EB2BDA61C21}">
                 <RegistryKey
                     Root="HKLM"
@@ -211,6 +214,7 @@
             InstallDefault="local"
             Absent="disallow">
             <ComponentRef Id="C.INSTALLDIR" />
+            <ComponentRef Id="C.License.txt" />
             <ComponentRef Id="C.sshfs.reg" />
             <ComponentRef Id="C.sshfs.r.reg" />
             <ComponentRef Id="C.sshfs.k.reg" />

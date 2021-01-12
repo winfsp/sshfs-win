@@ -1,5 +1,17 @@
-The SSHFS-Win project is Copyright (C) Bill Zissimopoulos. It is licensed
-under the terms of the GPLv2+.
+SSHFS-Win - SSHFS For Windows
+Copyright 2015-2021 Bill Zissimopoulos
+
+SSHFS-Win uses the same license as SSHFS, which is GPLv2+. It interfaces
+with WinFsp which is GPLv3 with a FLOSS exception.
+
+It also packages the following components:
+
+- Cygwin: LGPLv3
+- GLib2: LGPLv2
+- SSH: "all components are under a BSD licence,
+  or a licence more free than that"
+
+The full text of the GPLv2 license follows below.
 
 -----------------------------------------------------------------------
 
