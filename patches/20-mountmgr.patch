@@ -1,6 +1,8 @@
+diff --git a/sshfs.c b/sshfs.c
+index e253291..ae4955a 100644
 --- a/sshfs.c
 +++ b/sshfs.c
-@@ -3462,6 +3462,15 @@
+@@ -3710,6 +3710,15 @@ static int sshfs_opt_proc(void *data, const char *arg, int key,
  				&& ':' == arg[1] && '\0' == arg[2]) {
  				/* drive: make a copy */
  				sshfs.mountpoint = strdup(arg);

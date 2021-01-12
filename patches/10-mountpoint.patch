@@ -1,8 +1,8 @@
 diff --git a/sshfs.c b/sshfs.c
-index 06a1ef3..dc772c7 100644
+index 5c8d4b8..e253291 100644
 --- a/sshfs.c
 +++ b/sshfs.c
-@@ -3446,6 +3446,9 @@ static int sshfs_opt_proc(void *data, const char *arg, int key,
+@@ -3703,6 +3703,9 @@ static int sshfs_opt_proc(void *data, const char *arg, int key,
  			 * Furthermore the mountpoint must NOT exist prior to mounting.
  			 * So we cannot use realpath(3).
  			 */

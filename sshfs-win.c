@@ -1,7 +1,7 @@
 /**
  * sshfs-win.c
  *
- * Copyright 2015-2019 Bill Zissimopoulos
+ * Copyright 2015-2021 Bill Zissimopoulos
  */
 /*
  * This file is part of SSHFS-Win.
