@@ -12,6 +12,7 @@
  * (at your option) any later version.
  */
 
+#include <assert.h>
 #include <fcntl.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -19,8 +20,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static char *sshfs = "/bin/sshfs.exe";
-static char *sshfs_environ[] = { "PATH=/bin", 0 };
+static char *sshfs = "/usr/bin/sshfs.exe";
 
 #if 0
 #define execve pr_execv
@@ -96,6 +96,77 @@ static uint32_t reg_get(const char *cls, const char *name)
     return value;
 }
 
+static int fixenv_and_execv(const char *path, char **argv)
+{
+    static char *default_environ[] = { "PATH=/bin", 0 };
+    extern char **environ;
+    char **oldenv, **oldp;
+    char **newenv, **newp;
+    size_t len, siz;
+    int res;
+
+    oldenv = environ;
+
+    siz = 0;
+    for (oldp = oldenv; *oldp; oldp++)
+    {
+        if (0 == strncmp(*oldp, "PATH=", 5))
+        {
+            len = strlen(*oldp + 5);
+            siz += len + sizeof "PATH=/usr/bin:";
+        }
+        else
+        {
+            len = strlen(*oldp);
+            siz += len + 1;
+        }
+    }
+    oldp++;
+
+    newenv = malloc((oldp - oldenv) * sizeof(char *) + siz);
+    if (0 != newenv)
+    {
+        siz = (oldp - oldenv) * sizeof(char *);
+        for (oldp = oldenv, newp = newenv; *oldp; oldp++, newp++)
+        {
+            *newp = (char *)newenv + siz;
+            if (0 == strncmp(*oldp, "PATH=", 5))
+            {
+                len = strlen(*oldp + 5);
+                siz += len + sizeof "PATH=/usr/bin:";
+                memcpy(*newp, "PATH=/usr/bin:", sizeof "PATH=/usr/bin:" - 1);
+                memcpy(*newp + sizeof "PATH=/usr/bin:" - 1, *oldp + 5, len + 1);
+            }
+            else
+            {
+                len = strlen(*oldp);
+                siz += len + 1;
+                memcpy(*newp, *oldp, len + 1);
+            }
+        }
+        *newp = 0;
+    }
+    else
+    {
+        newenv = default_environ;
+        newp = newenv + 1;
+    }
+
+#if 1
+    res = execve(path, argv, newenv);
+#else
+    char **p;
+    for (p = newenv; *p; p++)
+        printf("%s\n", *p);
+    assert(newp == p);
+#endif
+
+    if (newenv != default_environ)
+        free(newenv);
+
+    return res;
+}
+
 static int do_cmd(int argc, char *argv[])
 {
     if (200 < argc)
@@ -108,7 +179,7 @@ static int do_cmd(int argc, char *argv[])
 
     concat_argv(sshfs_argv, argv + 1);
 
-    execve(sshfs, sshfs_argv, sshfs_environ);
+    fixenv_and_execv(sshfs, sshfs_argv);
     return 1;
 }
 
@@ -118,6 +189,7 @@ static int do_svc(int argc, char *argv[])
     "-f",                               \
     "-orellinks",                       \
     "-ofstypename=SSHFS",               \
+    "-o ssh_command=/usr/bin/ssh.exe",  \
     "-oUserKnownHostsFile=/dev/null",   \
     "-oStrictHostKeyChecking=no"
 
@@ -245,7 +317,7 @@ static int do_svc(int argc, char *argv[])
     if (4 <= argc)
         concat_argv(sshfs_argv, argv + 4);
 
-    execve(sshfs, sshfs_argv, sshfs_environ);
+    fixenv_and_execv(sshfs, sshfs_argv);
     return 1;
 
 #undef SSHFS_ARGS
