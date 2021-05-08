@@ -222,6 +222,8 @@
             <ComponentGroupRef Id="C.Main" />
         </Feature>
 
+        <WixVariable Id="WixUIBannerBmp" Value="art/wixbanner.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="art/wixdialog-$(var.MyProductStage).bmp" />
         <UI Id="FeatureTree">
             <UIRef Id="WixUI_FeatureTree" />
             <!-- skip the license agreement dialog; higher Order takes priority (weird) -->
