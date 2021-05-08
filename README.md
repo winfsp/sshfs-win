@@ -1,4 +1,7 @@
 <h1 align="center">
+    <img src="art/sshfs-glow.png" width="256"/>
+    <br/>
+    <br/>
     SSHFS-Win &middot; SSHFS for Windows
 </h1>
 
