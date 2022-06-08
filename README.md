@@ -140,12 +140,12 @@ sshfs-win itself does not currently support ssh tunneling, but something similar
   ```
   ssh -L <origin port of jump connection>:<target of tunnel>:<port of target to target> <adress of tunnel jump host>
   ```
-  For this all standard settings of the ssh config may be used.
+  All standard settings of the ssh config may be used in this step.
 
-  Reference example:
-  (create the following file "C:\Users\"<UserName>\".ssh\config  and include the following lines
-
+  Reference example ssh config:
   ```
+  create the file C:\Users\<UserName>\.ssh\config and/or add the following lines:
+
   Host <jump host alias>
     Hostname <adress of jump host>
     User <user name at jump host>
