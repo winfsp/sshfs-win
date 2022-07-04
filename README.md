@@ -35,6 +35,12 @@ SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Wind
 - Install the latest version of [WinFsp](https://github.com/billziss-gh/winfsp/releases/latest).
 - Install the latest version of [SSHFS-Win](https://github.com/billziss-gh/sshfs-win/releases). Choose the x64 or x86 installer according to your computer's architecture.
 
+Both can also be easily installed with [WinGet](https://github.com/microsoft/winget-cli):
+
+```console
+winget install WinFsp.WinFsp; winget install SSHFS-Win.SSHFS-Win
+```
+
 ## Basic Usage
 
 Once you have installed WinFsp and SSHFS-Win you can map a network drive to a directory on an SSHFS host using Windows Explorer or the `net use` command.
