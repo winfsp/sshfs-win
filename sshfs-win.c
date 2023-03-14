@@ -321,9 +321,12 @@ static int do_svc(int argc, char *argv[])
         sshfs, SSHFS_ARGS, idmap, authmeth, volpfx, portopt, remote, argv[2], 0,
     };
 
-    if (strlen(portopt) == 0)
+    if ('\0' == portopt[0])
     {
-        int portopt_idx = 10;
+        /* if not passing a port option, remove it from sshfs_argv */
+        int portopt_idx = 0;
+        while (sshfs_argv[portopt_idx] != portopt)
+            portopt_idx++;
         while (sshfs_argv[portopt_idx] != 0)
         {
             sshfs_argv[portopt_idx] = sshfs_argv[portopt_idx + 1];
