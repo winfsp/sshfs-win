@@ -41,6 +41,7 @@ static void usage(void)
         "usage: sshfs-win svc PREFIX X: [LOCUSER] [SSHFS_OPTIONS]\n"
         "    PREFIX              Windows UNC prefix (note single backslash)\n"
         "                        \\sshfs[.SUFFIX]\\[LOCUSER=]REMUSER@HOST[!PORT][\\PATH]\n"
+        "                        \\sshfs[.SUFFIX]\\alias[\\PATH]\n"
         "                        sshfs: remote user home dir\n"
         "                        sshfs.r: remote root dir\n"
         "                        sshfs.k: remote user home dir with key authentication\n"
@@ -221,10 +222,10 @@ static int do_svc(int argc, char *argv[])
         p++;
     root = 1 == reg_get(cls, "sshfs.rootdir") ? "/" : "";
 
-    /* parse instance name (syntax: [locuser=]user@host!port) */
+    /* parse instance name (syntax: [locuser=]user@host[!port]) */
     locuser = locuser_nodom = 0;
     userhost = p;
-    port = "22";
+    port = 0;
     while (*p && '/' != *p)
     {
         if ('=' == *p)
@@ -243,9 +244,15 @@ static int do_svc(int argc, char *argv[])
     if (*p)
         *p++ = '\0';
     path = p;
-
-    opt_escape(port, escaped, sizeof escaped);
-    snprintf(portopt, sizeof portopt, "-oPort=%s", escaped);
+    if (port != 0)
+    {
+        opt_escape(port, escaped, sizeof escaped);
+        snprintf(portopt, sizeof portopt, "-oPort=%s", escaped);
+    }
+    else
+    {
+        portopt[0] = '\0';
+    }
     snprintf(remote, sizeof remote, "%s:%s%s", userhost, root, path);
 
     /* get local user name */
@@ -313,6 +320,19 @@ static int do_svc(int argc, char *argv[])
     {
         sshfs, SSHFS_ARGS, idmap, authmeth, volpfx, portopt, remote, argv[2], 0,
     };
+
+    if ('\0' == portopt[0])
+    {
+        /* if not passing a port option, remove it from sshfs_argv */
+        int portopt_idx = 0;
+        while (sshfs_argv[portopt_idx] != portopt)
+            portopt_idx++;
+        while (sshfs_argv[portopt_idx] != 0)
+        {
+            sshfs_argv[portopt_idx] = sshfs_argv[portopt_idx + 1];
+            portopt_idx++;
+        }
+    }
 
     if (4 <= argc)
         concat_argv(sshfs_argv, argv + 4);
