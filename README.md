@@ -56,6 +56,10 @@ The first time you map a particular SSHFS path you will be prompted for the SSHF
 
 In order to unmap the drive, right-click on the drive icon in Windows Explorer and select Disconnect.
 
+In order to enter in / directory as root:
+
+     \\sshfs\REMUSER@HOST\..\..
+
 <p align="center">
 <img src="cap.gif" height="450"/>
 </p>
