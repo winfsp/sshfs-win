@@ -38,13 +38,12 @@ SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Wind
 Both can also be easily installed with [WinGet](https://github.com/microsoft/winget-cli):
 
 ```console
-winget install -h -e --id "WinFsp.WinFsp" && winget install -h -e --id "SSHFS-Win.SSHFS-Win"
+winget install -h sshfs-win
 ```
 
 ## Basic Usage
 
 Once you have installed WinFsp and SSHFS-Win you can map a network drive to a directory on an SSHFS host using Windows Explorer or the `net use` command.
-
 
 ### Windows Explorer
 
@@ -108,12 +107,12 @@ The complete UNC syntax is as follows:
 - `HOST` is the SSHFS host.
 - `PORT` is the remote port on the SSHFS host (optional; default is 22).
 - `PATH` is the remote path. This is interpreted as follows:
-    - The `sshfs` prefix maps to `HOST:~REMUSER/PATH` on the SSHFS host (i.e. relative to `REMUSER`'s home directory).
-    - The `sshfs.r` prefix maps to `HOST:/PATH` on the SSHFS host (i.e. relative to the `HOST`'s root directory).
-    - The `sshfs.k` prefix maps to `HOST:~REMUSER/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa` (where `%USERPROFILE%` is the home directory of the local Windows user). To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
-    - The `sshfs.kr` prefix maps to `HOST:/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa`. To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
+  - The `sshfs` prefix maps to `HOST:~REMUSER/PATH` on the SSHFS host (i.e. relative to `REMUSER`'s home directory).
+  - The `sshfs.r` prefix maps to `HOST:/PATH` on the SSHFS host (i.e. relative to the `HOST`'s root directory).
+  - The `sshfs.k` prefix maps to `HOST:~REMUSER/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa` (where `%USERPROFILE%` is the home directory of the local Windows user). To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
+  - The `sshfs.kr` prefix maps to `HOST:/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa`. To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
 - `LOCUSER` is the local Windows user (optional; `USERNAME` or `DOMAIN+USERNAME` format).
-    - Please note that this functionality is rarely necessary with latest versions of WinFsp.
+  - Please note that this functionality is rarely necessary with latest versions of WinFsp.
 
 ## GUI front ends
 
@@ -143,12 +142,15 @@ SSHFS-Win-Manager supports:
 sshfs-win itself does not currently support ssh tunneling, but something similar can be achieved using the built-in openSSH of windows.
 
 - use openSSH t create a local port forward through the jump host to the target
+
   ```
   ssh -L <origin port of jump connection>:<target of tunnel>:<port of target to target> <adress of tunnel jump host>
   ```
+
   All standard settings of the ssh config may be used in this step.
 
   Reference example ssh config:
+
   ```
   create the file C:\Users\<UserName>\.ssh\config and/or add the following lines:
 
@@ -158,12 +160,12 @@ sshfs-win itself does not currently support ssh tunneling, but something similar
     IdentityFile <path to private key for login to the jump host, may have a pass phrase>
     IdentitesOnly yes
   ```
+
 - connect to the target server using the following
   ```
   \\sshfs\REMUSER@localhost!<origin port of jump connection>
   ```
   or similar.
-
 
 ## Advanced Usage
 
@@ -223,10 +225,11 @@ You will also need:
 
 - FUSE for Cygwin. It is included with WinFsp and can be installed on a Cygwin installation by executing the command:
 
-    ```
-    $ sh "$(cat /proc/registry32/HKEY_LOCAL_MACHINE/SOFTWARE/WinFsp/InstallDir | tr -d '\0')"/opt/cygfuse/install.sh
-    FUSE for Cygwin installed.
-    ```
+  ```
+  $ sh "$(cat /proc/registry32/HKEY_LOCAL_MACHINE/SOFTWARE/WinFsp/InstallDir | tr -d '\0')"/opt/cygfuse/install.sh
+  FUSE for Cygwin installed.
+  ```
+
 - [Wix toolset](http://wixtoolset.org). This is a native Windows package that is used to build the SSHFS-Win MSI installer.
 
 To build:
