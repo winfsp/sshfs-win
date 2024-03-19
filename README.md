@@ -198,6 +198,11 @@ $ sh "$(cat /proc/registry32/HKEY_LOCAL_MACHINE/SOFTWARE/WinFsp/InstallDir | tr 
 FUSE for Cygwin installed.
 ```
 
+## Preventing timeouts
+
+A connection will timeout after some minutes when nothing is transferred. To prevent this, pass e.g. "-o ServerAliveInterval=30" as SSHFS_OPTIONS.
+When using "net use", you can't directly pass parameters, but you can use the provided "ServerAliveInterval.reg" to execute a registry patch. When you then use "net use", the parameter is automatically passed in the background and a keep-alive request is sent every 30 seconds.
+
 ## Project Organization
 
 This is a simple project:
