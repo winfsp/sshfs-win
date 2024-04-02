@@ -38,7 +38,7 @@ SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Wind
 Both can also be easily installed with [WinGet](https://github.com/microsoft/winget-cli):
 
 ```console
-winget install -h -e --id "WinFsp.WinFsp" && winget install -h -e --id "SSHFS-Win.SSHFS-Win"
+winget install -h -e --id "WinFsp.WinFsp" ; winget install -h -e --id "SSHFS-Win.SSHFS-Win"
 ```
 
 ## Basic Usage
