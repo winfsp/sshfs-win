@@ -142,7 +142,7 @@ SSHFS-Win-Manager supports:
 
 sshfs-win itself does not currently support ssh tunneling, but something similar can be achieved using the built-in openSSH of windows.
 
-- use openSSH t create a local port forward through the jump host to the target
+- use openSSH to create a local port forward through the jump host to the target
   ```
   ssh -L <origin port of jump connection>:<target of tunnel>:<port of target to target> <adress of tunnel jump host>
   ```
