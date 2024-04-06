@@ -156,7 +156,7 @@ sshfs-win itself does not currently support ssh tunneling, but something similar
     Hostname <adress of jump host>
     User <user name at jump host>
     IdentityFile <path to private key for login to the jump host, may have a pass phrase>
-    IdentitesOnly yes
+    IdentitiesOnly yes
   ```
 - connect to the target server using the following
   ```
