@@ -113,10 +113,48 @@ The complete UNC syntax is as follows:
 - `PATH` is the remote path. This is interpreted as follows:
     - The `sshfs` prefix maps to `HOST:~REMUSER/PATH` on the SSHFS host (i.e. relative to `REMUSER`'s home directory).
     - The `sshfs.r` prefix maps to `HOST:/PATH` on the SSHFS host (i.e. relative to the `HOST`'s root directory).
-    - The `sshfs.k` prefix maps to `HOST:~REMUSER/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa` (where `%USERPROFILE%` is the home directory of the local Windows user). To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
-    - The `sshfs.kr` prefix maps to `HOST:/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa`. To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
+    - The `sshfs.k` prefix maps to `HOST:~REMUSER/PATH` and uses the ssh key in
+      `%USERPROFILE%/.ssh/id_rsa` (where `%USERPROFILE%` is the home directory of the
+      local Windows user). To specify a different specific key, define an alias of the
+      HOST with the specific private ssh key you want to use in the [ssh
+      config](#ssh-client-configuration). BEWARE: only keys without a pass phrase are
+      supported.
+    - The `sshfs.kr` prefix maps to `HOST:/PATH` and uses the ssh key in
+      `%USERPROFILE%/.ssh/id_rsa`. To specify a different specific key, define an alias
+      of the HOST with the specific private ssh key you want to use in the [ssh
+      config](#ssh-client-configuration). BEWARE: only keys without a pass phrase are
+      supported.
 - `LOCUSER` is the local Windows user (optional; `USERNAME` or `DOMAIN+USERNAME` format).
     - Please note that this functionality is rarely necessary with latest versions of WinFsp.
+
+## SSH Client configuration
+
+Beyond the basic/default use cases described above, it's important to understand how
+SSHFS-Win interacts with both Windows and SSH. When SSHFS-Win uses parts of the SSH
+client configuration, it reproduces parts of the SSH client logic and doesn't use `$ ssh
+...` itself, so support for SSH client configuration is incomplete and SSHFS-Win doesn't
+behave the same as even the `> C:\Program Files\SSHFS-Win\bin\ssh.exe ...` SSH client
+included with the SSHFS-Win installation. For example, SSHFS-Win does *not* use [the
+`Port ...` ssh_config directive](https://man.openbsd.org/ssh_config#Port). Thus, even if
+you've included `Port ...` in your `**/ssh_config`, you must still specify the `!PORT`
+suffix in your [UNC](#unc-syntax).
+
+SSHFS-Win re-uses *only* the following [ssh_config
+directives](https://man.openbsd.org/ssh_config#DESCRIPTION):
+
+- `Host bar.localdomain` and `Hostname 192.168.1.1`: Define logical host aliases such
+  that `\\sshfs\foo@bar.localdomain` connects to `192.168.1.1` on the LAN.
+
+- `IdentityFile C:/Users/foo/.ssh/id.d/id_ed25519`: [Authenticate to the remote with
+  specific private SSH key](https://man.openbsd.org/ssh_config#IdentityFile). Note that
+  the path *must* be the absolute Windows path to the key.
+
+Because much of how SSHFS-Win uses the SSH client configuration is specific to
+SSHFS-Win, it's best to keep such configuration specific to SSHFS-Win in `C:\Program
+Files\SSHFS-Win\etc\ssh_config` instead of the more conventional
+`C:\Users\foo\.ssh\config` to avoid clashes with [the Windows OpenSSH
+feature](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse)
+and/or Cygwin SSH.
 
 ## GUI front ends
 
@@ -159,7 +197,8 @@ sshfs-win itself does not currently support ssh tunneling, but something similar
   ```
   ssh -L <origin port of jump connection>:<target of tunnel>:<port of target to target> <adress of tunnel jump host>
   ```
-  All standard settings of the ssh config may be used in this step.
+  All standard settings of the [ssh_config](https://man.openbsd.org/ssh_config] may be
+  used in this step.
 
   Reference example ssh config:
   ```
