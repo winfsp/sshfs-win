@@ -1,0 +1,60 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Configure Git line endings
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Download WinFSP
+      uses: carlosperate/download-file-action@v2
+      with:
+        file-url: 'https://github.com/winfsp/winfsp/releases/download/v2.1/winfsp-2.1.25156.msi'
+
+    - name: WinFSP installation
+      run: msiexec /i winfsp-2.1.25156.msi /quiet /qn /norestart /log install.log ADDLOCAL=ALL
+
+    - name: Setup Cygwin environment
+      uses: cygwin/cygwin-install-action@v4
+      with:
+        platform: x86_64
+        packages: gcc-core,git,libglib2.0-devel,make,meson,patch
+        add-to-path: false
+
+    - name: Install cygfuse
+      shell: C:\cygwin\bin\bash.exe --login {0}
+      run: 
+        bash "/cygdrive/c/Program Files (x86)/WinFsp/opt/cygfuse/install.sh"
+
+
+
+    - name: Build SSHFS-Win
+      shell: C:\cygwin\bin\bash.exe --login "/cygdrive/d/a/sshfs-win/sshfs-win/.github/workflows/run-converted.sh" {0}
+      run: |
+        cd "${{ github.workspace }}"
+        make
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sshfs-binaries
+        path: ${{ github.workspace }}/.build
+        include-hidden-files: true
