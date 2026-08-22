@@ -217,9 +217,9 @@ When using mapped network drives created in Windows Explorer or using "net use",
 
 ## Preventing timeouts
 
-A connection will timeout after some minutes when nothing is transferred. To prevent this, pass e.g. "-o ServerAliveInterval=30" as SSHFS_OPTIONS. A keep-alive request is sent every 30 seconds.
+A connection may be silently dropped while idle, or an SFTP request may remain blocked after a transport failure. To detect and recover from both cases, pass `-o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30` as SSHFS_OPTIONS. This detects a dead SSH transport, bounds connection setup, and reconnects it. The request watchdog terminates a mount if any SFTP request remains pending for 30 seconds; WinFsp Launcher recovery then starts a fresh instance instead of leaving applications blocked indefinitely.
 
-Map network drive or "net use": Use the provided "ServerAliveInterval.reg" registry patch.
+Map network drive or "net use": Use the provided "ServerAliveInterval.reg" registry patch. The options are also installed as defaults for new installations. Existing mappings must be disconnected and reconnected before changed options take effect. Operations in progress when a connection fails return an error and may need to be retried; in-flight writes may be lost.
 
 ## Setting looser permissions for new files and directories
 
