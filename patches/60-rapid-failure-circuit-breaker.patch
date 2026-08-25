@@ -1,0 +1,115 @@
+diff --git a/sshfs.c b/sshfs.c
+index d02782d..a4ec73b 100644
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -314,6 +314,63 @@ static int request_ready_destroy(request_ready_t *ready)
+ }
+ #endif
+ 
++#ifdef __CYGWIN__
++#define QUICK_FAILURE_LIMIT 32
++#define QUICK_FAILURE_WINDOW 10
++
++static volatile LONG quick_failure_count;
++static volatile LONG quick_failure_start;
++
++static int request_health_type(uint8_t type)
++{
++	return type == SSH_FXP_OPEN || type == SSH_FXP_READ ||
++		type == SSH_FXP_LSTAT || type == SSH_FXP_FSTAT ||
++		type == SSH_FXP_OPENDIR || type == SSH_FXP_READDIR ||
++		type == SSH_FXP_REALPATH;
++}
++
++static void request_health_success(uint8_t type)
++{
++	if (!request_health_type(type))
++		return;
++
++	InterlockedExchange(&quick_failure_count, 0);
++	InterlockedExchange(&quick_failure_start, 0);
++}
++
++static void request_health_failure(uint8_t type)
++{
++	struct timeval now;
++	LONG start;
++	LONG count;
++
++	if (!request_health_type(type))
++		return;
++
++	gettimeofday(&now, NULL);
++	start = InterlockedCompareExchange(&quick_failure_start,
++		(LONG) now.tv_sec, 0);
++	if (start == 0)
++		start = (LONG) now.tv_sec;
++	if ((LONG) now.tv_sec - start > QUICK_FAILURE_WINDOW) {
++		InterlockedExchange(&quick_failure_count, 0);
++		InterlockedExchange(&quick_failure_start, (LONG) now.tv_sec);
++	}
++
++	count = InterlockedIncrement(&quick_failure_count);
++	if (count >= QUICK_FAILURE_LIMIT) {
++		fprintf(stderr,
++			"connection returned %ld rapid failures; terminating mount\n",
++			(long) count);
++		fflush(stderr);
++		_exit(EIO);
++	}
++}
++#else
++static void request_health_success(uint8_t type) { (void) type; }
++static void request_health_failure(uint8_t type) { (void) type; }
++#endif
++
+ struct request {
+ 	unsigned int want_reply;
+ 	request_ready_t ready;
+@@ -2071,26 +2128,37 @@ static int sftp_request_wait(struct request *req, uint8_t type,
+ 
+ 	if (req->error) {
+ 		err = req->error;
++		request_health_failure(type);
+ 		goto out;
+ 	}
+ 	if (request_ready_wait(&req->ready) == -1) {
+ 		err = -EIO;
++		request_health_failure(type);
+ 		goto out;
+ 	}
+ 	if (req->error) {
+ 		err = req->error;
++		request_health_failure(type);
+ 		goto out;
+ 	}
+ 	err = -EIO;
+ 	if (req->reply_type != expect_type &&
+ 	    req->reply_type != SSH_FXP_STATUS) {
+ 		fprintf(stderr, "protocol error\n");
++		request_health_failure(type);
+ 		goto out;
+ 	}
+ 	if (req->reply_type == SSH_FXP_STATUS) {
+ 		uint32_t serr;
+-		if (buf_get_uint32(&req->reply, &serr) == -1)
++		if (buf_get_uint32(&req->reply, &serr) == -1) {
++			request_health_failure(type);
+ 			goto out;
++		}
++
++		if (serr == SSH_FX_FAILURE)
++			request_health_failure(type);
++		else
++			request_health_success(type);
+ 
+ 		switch (serr) {
+ 		case SSH_FX_OK:
+@@ -2118,6 +2186,7 @@ static int sftp_request_wait(struct request *req, uint8_t type,
+ 			err = -sftp_error_to_errno(serr);
+ 		}
+ 	} else {
++		request_health_success(type);
+ 		buf_init(outbuf, req->reply.size - req->reply.len);
+ 		buf_get_mem(&req->reply, outbuf->p, outbuf->size);
+ 		err = 0;
