@@ -1,0 +1,199 @@
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -417,8 +417,11 @@
+ 
+ struct sshfs_file {
+ 	struct buffer handle;
++	char *path;
++	int transient_read;
+ 	struct list_head write_reqs;
+ 	pthread_cond_t write_finished;
++	int write_finished_initialized;
+ 	int write_error;
+ 	struct read_chunk *readahead;
+ 	off_t next_pos;
+@@ -2993,6 +2996,31 @@
+ 	return (struct sshfs_file *) (uintptr_t) fi->fh;
+ }
+ 
++static int sshfs_open_transient_read(struct sshfs_file *sf,
++				     struct buffer *handle)
++{
++	struct buffer buf;
++	int err;
++
++	buf_init(&buf, 0);
++	buf_add_path(&buf, sf->path);
++	buf_add_uint32(&buf, SSH_FXF_READ);
++	buf_add_uint32(&buf, 0);
++	err = sftp_request(sf->conn, SSH_FXP_OPEN, &buf,
++			   SSH_FXP_HANDLE, handle);
++	buf_free(&buf);
++	if (!err)
++		buf_finish(handle);
++	return err;
++}
++
++static void sshfs_close_transient_read(struct sshfs_file *sf,
++				       struct buffer *handle)
++{
++	sftp_request(sf->conn, SSH_FXP_CLOSE, handle, 0, NULL);
++	buf_clear(handle);
++}
++
+ static int sshfs_chmod(const char *path, mode_t mode,
+                        struct fuse_file_info *fi)
+ {
+@@ -3005,6 +3033,10 @@
+ 		sf = get_sshfs_file(fi);
+ 		if (!sshfs_file_is_conn(sf))
+ 			return -EIO;
++		if (sf->transient_read) {
++			path = sf->path;
++			sf = NULL;
++		}
+ 	}
+ 
+ 	buf_init(&buf, 0);
+@@ -3038,6 +3070,10 @@
+ 		sf = get_sshfs_file(fi);
+ 		if (!sshfs_file_is_conn(sf))
+ 			return -EIO;
++		if (sf->transient_read) {
++			path = sf->path;
++			sf = NULL;
++		}
+ 	}
+ 
+ 	if (sshfs.remote_uid_detected) {
+@@ -3101,6 +3137,10 @@
+ 		sf = get_sshfs_file(fi);
+ 		if (!sshfs_file_is_conn(sf))
+ 			return -EIO;
++		if (sf->transient_read) {
++			path = sf->path;
++			sf = NULL;
++		}
+ 	}
+ 
+ 	buf_init(&buf, 0);
+@@ -3170,7 +3210,13 @@
+ 
+ 	sf = g_new0(struct sshfs_file, 1);
+ 	list_init(&sf->write_reqs);
+-	pthread_cond_init(&sf->write_finished, NULL);
++	if (pflags & SSH_FXF_WRITE) {
++		if (pthread_cond_init(&sf->write_finished, NULL) != 0) {
++			g_free(sf);
++			return -EIO;
++		}
++		sf->write_finished_initialized = 1;
++	}
+ 	/* Assume random read after open */
+ 	sf->is_seq = 0;
+ 	sf->next_pos = 0;
+@@ -3224,6 +3270,13 @@
+ 		if (sshfs.dir_cache)
+ 			cache_add_attr(path, &stbuf, wrctr);
+ 		buf_finish(&sf->handle);
++#ifdef __CYGWIN__
++		if (!(pflags & SSH_FXF_WRITE)) {
++			sf->path = g_strdup(path);
++			sf->transient_read = 1;
++			sshfs_close_transient_read(sf, &sf->handle);
++		}
++#endif
+ 		fi->fh = (unsigned long) sf;
+ 	} else {
+ 		if (sshfs.dir_cache)
+@@ -3240,7 +3293,8 @@
+ 			}
+ 			pthread_mutex_unlock(&sshfs.lock);
+ 		}
+-		pthread_cond_destroy(&sf->write_finished);
++		if (sf->write_finished_initialized)
++			pthread_cond_destroy(&sf->write_finished);
+ 		g_free(sf);
+ 	}
+ 	buf_free(&buf);
+@@ -3296,6 +3350,8 @@
+ 
+ 	struct buffer buf;
+ 	struct sshfs_file *sf = get_sshfs_file(fi);
++	if (sf->transient_read)
++		return 0;
+ 	buf_init(&buf, 0);
+ 	buf_add_string(&buf, SFTP_EXT_FSYNC);
+ 	buf_add_buf(&buf, &sf->handle);
+@@ -3310,7 +3366,8 @@
+ 	struct buffer *handle = &sf->handle;
+ 	if (sshfs_file_is_conn(sf)) {
+ 		sshfs_flush(path, fi);
+-		sftp_request(sf->conn, SSH_FXP_CLOSE, handle, 0, NULL);
++		if (!sf->transient_read)
++			sftp_request(sf->conn, SSH_FXP_CLOSE, handle, 0, NULL);
+ 	}
+ 	buf_free(handle);
+ 	chunk_put_locked(sf->readahead);
+@@ -3326,7 +3383,9 @@
+ 		}
+ 		pthread_mutex_unlock(&sshfs.lock);
+ 	}
+-	pthread_cond_destroy(&sf->write_finished);
++	if (sf->write_finished_initialized)
++		pthread_cond_destroy(&sf->write_finished);
++	g_free(sf->path);
+ 	g_free(sf);
+ 	return 0;
+ }
+@@ -3567,10 +3626,22 @@
+                       struct fuse_file_info *fi)
+ {
+ 	struct sshfs_file *sf = get_sshfs_file(fi);
++	struct sshfs_file transient;
++	int res;
+ 	(void) path;
+ 
+ 	if (!sshfs_file_is_conn(sf))
+ 		return -EIO;
++	if (sf->transient_read) {
++		transient = *sf;
++		transient.readahead = NULL;
++		res = sshfs_open_transient_read(sf, &transient.handle);
++		if (res)
++			return res;
++		res = sshfs_sync_read(&transient, rbuf, size, offset);
++		sshfs_close_transient_read(sf, &transient.handle);
++		return res;
++	}
+ 
+ 	if (sshfs.sync_read)
+ 		return sshfs_sync_read(sf, rbuf, size, offset);
+@@ -3782,11 +3853,15 @@
+ 		sf = get_sshfs_file(fi);
+ 		if (!sshfs_file_is_conn(sf))
+ 			return -EIO;
++		if (sf->transient_read) {
++			path = sf->path;
++			sf = NULL;
++		}
+ 	}
+ 
+ 	sshfs_inc_modifver();
+ 	if (sshfs.truncate_workaround)
+-		return sshfs_truncate_workaround(path, size, fi);
++		return sshfs_truncate_workaround(path, size, sf != NULL ? fi : NULL);
+ 
+ 	buf_init(&buf, 0);
+ 
+@@ -3817,6 +3892,10 @@
+ 		sf = get_sshfs_file(fi);
+ 		if (!sshfs_file_is_conn(sf))
+ 			return -EIO;
++		if (sf->transient_read) {
++			path = sf->path;
++			sf = NULL;
++		}
+ 	}
+ 
+ 	buf_init(&buf, 0);

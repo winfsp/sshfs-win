@@ -1,0 +1,112 @@
+diff --git a/sshfs.c b/sshfs.c
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -353,6 +353,7 @@ struct sshfs {
+ 	GHashTable *r_gid_map;
+ 	unsigned max_read;
+ 	unsigned max_write;
++	unsigned request_timeout;
+ 	unsigned ssh_ver;
+ 	int sync_write;
+ 	int sync_read;
+@@ -498,6 +499,7 @@ static struct fuse_opt sshfs_opts[] = {
+ 	SSHFS_OPT("sftp_server=%s",    sftp_server, 0),
+ 	SSHFS_OPT("max_read=%u",       max_read, 0),
+ 	SSHFS_OPT("max_write=%u",      max_write, 0),
++	SSHFS_OPT("request_timeout=%u", request_timeout, 0),
+ 	SSHFS_OPT("ssh_protocol=%u",   ssh_ver, 0),
+ 	SSHFS_OPT("-1",                ssh_ver, 1),
+ 	SSHFS_OPT("workaround=%s",     workarounds, 0),
+@@ -1982,9 +1993,73 @@ static int start_processing_thread(struct conn *conn)
+ 	return 0;
+ }
+ 
++static void *request_watchdog(void *data)
++{
++	(void) data;
++	unsigned lock_busy = 0;
++
++	for (;;) {
++		struct timeval now;
++		uint32_t expired_id = 0;
++		int expired = 0;
++
++		sleep(1);
++		gettimeofday(&now, NULL);
++		int lock_res = pthread_mutex_trylock(&sshfs.lock);
++		if (lock_res == EBUSY) {
++			if (++lock_busy >= sshfs.request_timeout) {
++				fprintf(stderr,
++					"request lock made no progress for %u seconds; terminating mount\n",
++					sshfs.request_timeout);
++				fflush(stderr);
++				_exit(ETIMEDOUT);
++			}
++			continue;
++		}
++		if (lock_res != 0) {
++			fprintf(stderr, "request watchdog lock failed: %s\n",
++				strerror(lock_res));
++			fflush(stderr);
++			_exit(lock_res);
++		}
++		lock_busy = 0;
++		GHashTableIter iter;
++		gpointer key, value;
++		g_hash_table_iter_init(&iter, sshfs.reqtab);
++		while (g_hash_table_iter_next(&iter, &key, &value)) {
++			struct request *req = value;
++			long elapsed = now.tv_sec - req->start.tv_sec;
++			if (elapsed >= (long) sshfs.request_timeout) {
++				expired_id = req->id;
++				expired = 1;
++				break;
++			}
++		}
++		pthread_mutex_unlock(&sshfs.lock);
++
++		if (expired) {
++			fprintf(stderr, "request %u exceeded %u seconds; terminating mount\n",
++				expired_id, sshfs.request_timeout);
++			fflush(stderr);
++			_exit(ETIMEDOUT);
++		}
++	}
++}
++
+ static void *sshfs_init(struct fuse_conn_info *conn,
+                         struct fuse_config *cfg)
+ {
++	if (sshfs.request_timeout != 0) {
++		pthread_t watchdog_id;
++		int err = pthread_create(&watchdog_id, NULL,
++				request_watchdog, NULL);
++		if (err)
++			fprintf(stderr, "failed to create request watchdog: %s\n",
++				strerror(err));
++		else
++			pthread_detach(watchdog_id);
++	}
++
+ 	/* Readahead should be done by kernel or sshfs but not both */
+ 	if (conn->capable & FUSE_CAP_ASYNC_READ)
+ 		sshfs.sync_read = 1;
+@@ -2102,8 +2177,9 @@ static int sftp_request_send(struct conn *conn, uint8_t type, struct iovec *iov,
+ 		pthread_cond_wait(&sshfs.outstanding_cond, &sshfs.lock);
+ 
+ 	g_hash_table_insert(sshfs.reqtab, GUINT_TO_POINTER(id), req);
+-	if (sshfs.debug) {
++	if (sshfs.request_timeout || sshfs.debug)
+ 		gettimeofday(&req->start, NULL);
++	if (sshfs.debug) {
+ 		sshfs.num_sent++;
+ 		sshfs.bytes_sent += req->len;
+ 	}
+@@ -3820,6 +3896,7 @@ static void usage(const char *progname)
+ "    -1                     equivalent to '-o ssh_protocol=1'\n"
+ "    -o opt,[opt...]        mount options\n"
+ "    -o reconnect           reconnect to server\n"
++"    -o request_timeout=N   terminate the mount if an SFTP request exceeds N seconds\n"
+ "    -o delay_connect       delay connection to server\n"
+ "    -o sshfs_sync          synchronous writes\n"
+ "    -o no_readahead        synchronous reads (no speculative readahead)\n"
