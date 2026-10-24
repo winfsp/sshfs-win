@@ -29,6 +29,9 @@
     <a href="https://github.com/gregorkrebs/neosshwinmanager/releases/latest">
         <img src="https://img.shields.io/github/release/gregorkrebs/neosshwinmanager.svg?label=NEO%20SSH-Win%20Manager&style=for-the-badge"/>
     </a>
+    <a href="https://github.com/huangzhenming/sshfs-win-tray/releases/latest">
+        <img src="https://img.shields.io/github/release/huangzhenming/sshfs-win-tray.svg?label=sshfs-win-tray&style=for-the-badge"/>
+    </a>
 </p>
 
 SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Windows. Under the hood it uses [Cygwin](https://cygwin.com) for the POSIX environment and [WinFsp](https://github.com/billziss-gh/winfsp) for the FUSE functionality.
@@ -120,7 +123,7 @@ The complete UNC syntax is as follows:
 
 ## GUI front ends
 
-There are currently 3 GUI front ends for SSHFS-Win: [SiriKali](https://mhogomchungu.github.io/sirikali/), [SSHFS-Win-Manager](https://github.com/evsar3/sshfs-win-manager) and [NEO SSH-Win Manager](https://github.com/gregorkrebs/neosshwinmanager).
+There are currently 4 GUI front ends for SSHFS-Win: [SiriKali](https://mhogomchungu.github.io/sirikali/), [SSHFS-Win-Manager](https://github.com/evsar3/sshfs-win-manager), [NEO SSH-Win Manager](https://github.com/gregorkrebs/neosshwinmanager) and [sshfs-win-tray](https://github.com/huangzhenming/sshfs-win-tray).
 
 ### SiriKali
 
@@ -150,6 +153,15 @@ NEO SSH-Win Manager supports:
 - Password authentication.
 - Public key authentication.
 - SSH certificate authentication.
+
+### sshfs-win-tray
+
+[sshfs-win-tray](https://github.com/huangzhenming/sshfs-win-tray) is a small GUI and tray front end for SSHFS-Win, written in Rust. It is a single portable ~600 KB exe with no installer and no runtime dependencies. It keeps a list of connections, mounts them as drive letters via `sshfs-win.exe svc`, and can connect at startup and reconnect automatically; the tray icon shows the connection status. Please report problems with sshfs-win-tray in its [issues](https://github.com/huangzhenming/sshfs-win-tray/issues) page.
+
+sshfs-win-tray supports:
+
+- Password authentication (saved passwords are encrypted with Windows DPAPI).
+- Public key authentication.
 
 ## Using Jump Hosts
 
