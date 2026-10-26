@@ -35,7 +35,7 @@ $(Status)/done: $(Status)/dist
 $(Status)/dist: $(Status)/wix
 	mkdir -p $(DistDir)
 	cp $(shell cygpath -aw $(WixDir)/sshfs-win-$(MyVersion)-$(MyArch).msi) $(DistDir)
-	tools/signtool sign \
+	sed 's/\r$$//' tools/signtool | bash -s -- sign \
 		/ac tools/$(CrossCert) \
 		/i $(CertIssuer) \
 		/n $(MyCompanyName) \
@@ -106,12 +106,12 @@ $(Status)/config: $(Status)/patch
 	touch $(Status)/config
 
 $(Status)/patch: $(Status)/clone
-	cd $(SrcDir)/sshfs && for f in $(PrjDir)/patches/*.patch; do patch --binary -p1 <$$f; done
+	set -e; cd $(SrcDir)/sshfs && for f in $(PrjDir)/patches/*.patch; do sed 's/\r$$//' <$$f | patch --binary -p1; done
 	touch $(Status)/patch
 
 $(Status)/clone:
 	mkdir -p $(SrcDir)
-	git clone $(PrjDir)/sshfs $(SrcDir)/sshfs
+	git -c core.autocrlf=false clone $(PrjDir)/sshfs $(SrcDir)/sshfs
 	touch $(Status)/clone
 
 clean:

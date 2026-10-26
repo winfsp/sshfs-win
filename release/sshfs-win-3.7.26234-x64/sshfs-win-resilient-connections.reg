@@ -1,0 +1,13 @@
+﻿Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\WinFsp\Services\sshfs]
+"CommandLine"="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\WinFsp\Services\sshfs.k]
+"CommandLine"="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\WinFsp\Services\sshfs.kr]
+"CommandLine"="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\WinFsp\Services\sshfs.r]
+"CommandLine"="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30"

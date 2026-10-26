@@ -1,0 +1,139 @@
+diff --git a/sshfs.c b/sshfs.c
+index 3bd4ec5..8bb699a 100644
+--- a/sshfs.c
++++ b/sshfs.c
+@@ -22,7 +22,9 @@
+ #include <string.h>
+ #include <stdint.h>
+ #include <errno.h>
+-#ifndef __APPLE__
++#if defined(__CYGWIN__)
++#  include <windows.h>
++#elif !defined(__APPLE__)
+ #  include <semaphore.h>
+ #endif
+ #include <pthread.h>
+@@ -261,9 +263,60 @@ struct list_head {
+ struct request;
+ typedef void (*request_func)(struct request *);
+ 
++#ifdef __CYGWIN__
++typedef HANDLE request_ready_t;
++
++static int request_ready_init(request_ready_t *ready)
++{
++	*ready = CreateEventW(NULL, FALSE, FALSE, NULL);
++	return *ready == NULL ? -1 : 0;
++}
++
++static int request_ready_post(request_ready_t *ready)
++{
++	return SetEvent(*ready) ? 0 : -1;
++}
++
++static int request_ready_wait(request_ready_t *ready)
++{
++	return WaitForSingleObject(*ready, INFINITE) == WAIT_OBJECT_0 ? 0 : -1;
++}
++
++static int request_ready_destroy(request_ready_t *ready)
++{
++	return CloseHandle(*ready) ? 0 : -1;
++}
++#else
++typedef sem_t request_ready_t;
++
++static int request_ready_init(request_ready_t *ready)
++{
++	return sem_init(ready, 0, 0);
++}
++
++static int request_ready_post(request_ready_t *ready)
++{
++	return sem_post(ready);
++}
++
++static int request_ready_wait(request_ready_t *ready)
++{
++	int res;
++	do {
++		res = sem_wait(ready);
++	} while (res == -1 && errno == EINTR);
++	return res;
++}
++
++static int request_ready_destroy(request_ready_t *ready)
++{
++	return sem_destroy(ready);
++}
++#endif
++
+ struct request {
+ 	unsigned int want_reply;
+-	sem_t ready;
++	request_ready_t ready;
+ 	uint8_t reply_type;
+ 	uint32_t id;
+ 	int replied;
+@@ -1499,7 +1552,8 @@ static void request_free(struct request *req)
+ 	req->conn->req_count--;
+ 
+ 	buf_free(&req->reply);
+-	sem_destroy(&req->ready);
++	if (request_ready_destroy(&req->ready) == -1)
++		fprintf(stderr, "failed to destroy request event\n");
+ 	g_free(req);
+ }
+ 
+@@ -1541,9 +1595,10 @@ static int clean_req(void *key, struct request *req, gpointer user_data)
+ 		return FALSE;
+ 
+ 	req->error = -EIO;
+-	if (req->want_reply)
+-		sem_post(&req->ready);
+-	else
++	if (req->want_reply) {
++		if (request_ready_post(&req->ready) == -1)
++			fprintf(stderr, "failed to signal request event\n");
++	} else
+ 		request_free(req);
+ 
+ 	return TRUE;
+@@ -1608,9 +1663,10 @@ static int process_one_request(struct conn *conn)
+ 		req->reply = buf;
+ 		req->reply_type = type;
+ 		req->replied = 1;
+-		if (req->want_reply)
+-			sem_post(&req->ready);
+-		else {
++		if (req->want_reply) {
++			if (request_ready_post(&req->ready) == -1)
++				fprintf(stderr, "failed to signal request event\n");
++		} else {
+ 			pthread_mutex_lock(&sshfs.lock);
+ 			request_free(req);
+ 			pthread_mutex_unlock(&sshfs.lock);
+@@ -2017,7 +2073,10 @@ static int sftp_request_wait(struct request *req, uint8_t type,
+ 		err = req->error;
+ 		goto out;
+ 	}
+-	while (sem_wait(&req->ready));
++	if (request_ready_wait(&req->ready) == -1) {
++		err = -EIO;
++		goto out;
++	}
+ 	if (req->error) {
+ 		err = req->error;
+ 		goto out;
+@@ -2082,7 +2141,10 @@ static int sftp_request_send(struct conn *conn, uint8_t type, struct iovec *iov,
+ 	req->want_reply = want_reply;
+ 	req->end_func = end_func;
+ 	req->data = data;
+-	sem_init(&req->ready, 0, 0);
++	if (request_ready_init(&req->ready) == -1) {
++		g_free(req);
++		return -EIO;
++	}
+ 	buf_init(&req->reply, 0);
+ 	pthread_mutex_lock(&sshfs.lock);
+ 	if (begin_func)

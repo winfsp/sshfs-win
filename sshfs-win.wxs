@@ -29,10 +29,8 @@
             Compressed="yes"
             InstallScope="perMachine" />
         <MajorUpgrade
-            Disallow="yes"
             AllowDowngrades="no"
-            AllowSameVersionUpgrades="no"
-            DisallowUpgradeErrorMessage="An older version of $(var.MyProductName) is already installed. You must uninstall it before you can install this version."
+            AllowSameVersionUpgrades="yes"
             DowngradeErrorMessage="A newer version of $(var.MyProductName) is already installed." />
         <Media Id="1" Cabinet="sshfs_win.cab" EmbedCab="yes" />
 
@@ -87,7 +85,7 @@
                         <RegistryValue
                             Type="string"
                             Name="CommandLine"
-                            Value="svc %1 %2 %U" />
+                            Value="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30" />
                         <RegistryValue
                             Type="string"
                             Name="Security"
@@ -95,6 +93,10 @@
                         <RegistryValue
                             Type="integer"
                             Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Recovery"
                             Value="1" />
                         <RegistryValue
                             Type="integer"
@@ -117,7 +119,7 @@
                         <RegistryValue
                             Type="string"
                             Name="CommandLine"
-                            Value="svc %1 %2 %U" />
+                            Value="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30" />
                         <RegistryValue
                             Type="string"
                             Name="Security"
@@ -125,6 +127,10 @@
                         <RegistryValue
                             Type="integer"
                             Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Recovery"
                             Value="1" />
                         <RegistryValue
                             Type="integer"
@@ -151,7 +157,7 @@
                         <RegistryValue
                             Type="string"
                             Name="CommandLine"
-                            Value="svc %1 %2 %U" />
+                            Value="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30" />
                         <RegistryValue
                             Type="string"
                             Name="Security"
@@ -159,6 +165,10 @@
                         <RegistryValue
                             Type="integer"
                             Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Recovery"
                             Value="1" />
                         <RegistryValue
                             Type="integer"
@@ -181,7 +191,7 @@
                         <RegistryValue
                             Type="string"
                             Name="CommandLine"
-                            Value="svc %1 %2 %U" />
+                            Value="svc %1 %2 %U -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o reconnect -o ConnectTimeout=10 -o request_timeout=30" />
                         <RegistryValue
                             Type="string"
                             Name="Security"
@@ -189,6 +199,10 @@
                         <RegistryValue
                             Type="integer"
                             Name="JobControl"
+                            Value="1" />
+                        <RegistryValue
+                            Type="integer"
+                            Name="Recovery"
                             Value="1" />
                         <RegistryValue
                             Type="integer"
