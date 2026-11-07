@@ -120,6 +120,13 @@ The complete UNC syntax is as follows:
     - The `sshfs.kr` prefix maps to `HOST:/PATH` and uses the ssh key in `%USERPROFILE%/.ssh/id_rsa`. To specify a different specific key, define an alias of the HOST with the specific private ssh key you want to use in the ssh config. BEWARE: only keys without a pass phrase are supported.
 - `LOCUSER` is the local Windows user (optional; `USERNAME` or `DOMAIN+USERNAME` format).
     - Please note that this functionality is rarely necessary with latest versions of WinFsp.
+    - `LOCUSER` must name the Windows user that requests the mount; a mount that names a different local user is refused. (The file system runs as LocalSystem and reads `LOCUSER`'s private key, so allowing any value would let one local user authenticate with another user's key.)
+
+### Host key verification
+
+SSHFS-Win verifies the SSH host key of the server. On the first connection to a host the key is accepted and recorded in `%USERPROFILE%\.ssh\known_hosts` of the local Windows user (or in `etc\known_hosts` in the SSHFS-Win installation directory if the local user cannot be determined). On later connections the mount is refused if the host key has changed, which protects the password or key exchange against man-in-the-middle attacks.
+
+If the host key legitimately changes (for example after reinstalling the server), remove the old entry, e.g. `ssh-keygen -R "[HOST]:PORT"` (or `ssh-keygen -R HOST` for port 22), and mount again.
 
 ## GUI front ends
 
