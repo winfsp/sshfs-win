@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 
 static char *sshfs = "/usr/bin/sshfs.exe";
@@ -68,11 +69,15 @@ static void opt_escape(const char *opt, char *escaped, size_t size)
 {
     const char *p = opt;
     char *q = escaped, *endq = escaped + size;
-    for (; *p && endq > q + 1; p++, q++)
+    for (; *p; p++)
     {
-        if (',' == *p || '\\' == *p)
+        size_t need = (',' == *p || '\\' == *p) ? 2 : 1;
+        /* keep room for the escaped char(s) plus the terminating NUL */
+        if ((size_t)(endq - q) <= need)
+            break;
+        if (2 == need)
             *q++ = '\\';
-        *q = *p;
+        *q++ = *p;
     }
     *q = '\0';
 }
@@ -191,16 +196,20 @@ static int do_svc(int argc, char *argv[])
     "-orellinks",                       \
     "-ofstypename=SSHFS",               \
     "-o ssh_command=/usr/bin/ssh.exe",  \
-    "-oUserKnownHostsFile=/dev/null",   \
-    "-oStrictHostKeyChecking=no"
+    "-oStrictHostKeyChecking=accept-new",\
+    "-oServerAliveInterval=15",         \
+    "-oServerAliveCountMax=3",          \
+    "-oreconnect"
 
     if (3 > argc || 200 < argc)
         usage();
 
     struct passwd *passwd = 0;
-    char idmap[64], authmeth[64 + 1024], volpfx[256], portopt[256], remote[256];
+    char idmap[64], authmeth[64 + 1024], knownhosts[64 + 1024];
+    char volpfx[256], portopt[256], remote[256];
     char escaped[1024];
-    char *cls, *locuser, *locuser_nodom, *userhost, *port, *root, *path, *p;
+    char *cls, *locuser, *locuser_nodom, *caller, *caller_nodom;
+    char *userhost, *port, *root, *path, *p;
 
     snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
 
@@ -244,6 +253,25 @@ static int do_svc(int argc, char *argv[])
     if (*p)
         *p++ = '\0';
     path = p;
+
+    /*
+     * The instance name comes from the UNC path, which any local user can choose.
+     * Never let it be interpreted as a command line option by sshfs or ssh.
+     */
+    if ('\0' == userhost[0] || '-' == userhost[0])
+    {
+        fprintf(stderr, "sshfs-win: invalid user@host \"%s\"\n", userhost);
+        exit(2);
+    }
+    if (port != 0)
+    {
+        if ('\0' == port[0] || strspn(port, "0123456789") != strlen(port))
+        {
+            fprintf(stderr, "sshfs-win: invalid port \"%s\"\n", port);
+            exit(2);
+        }
+    }
+
     if (port != 0)
     {
         opt_escape(port, escaped, sizeof escaped);
@@ -256,39 +284,55 @@ static int do_svc(int argc, char *argv[])
     snprintf(remote, sizeof remote, "%s:%s%s", userhost, root, path);
 
     /* get local user name */
-    if (0 == locuser)
+    if (4 <= argc)
     {
-        if (3 >= argc)
+        /*
+         * The launcher passes the identity of the user requesting the mount (%U).
+         * The file system runs as LocalSystem and reads the local user's private key,
+         * so the [LOCUSER=] part of the UNC path must not name anybody else.
+         */
+        caller = argv[3];
+        caller_nodom = 0;
+        /* the Cygwin runtime does not remove double quotes around args with non-ASCII chars */
+        if (caller[0] == '"')
         {
-            p = userhost;
-            while (*p && '@' != *p)
-                p++;
-            if (*p)
+            size_t len = strlen(caller);
+            if (len >= 2 && caller[len - 1] == '"')
             {
-                *p = '\0';
-                locuser = userhost;
+                caller[len - 1] = '\0';     /* remove the trailing quote... */
+                ++caller;                   /* ...and the heading one       */
             }
         }
-        else
-        {
-            locuser = argv[3];
-            /* the Cygwin runtime does not remove double quotes around args with non-ASCII chars */
-            if (locuser[0] == '"')
+        /* translate backslash to '+' */
+        for (p = caller; *p; p++)
+            if ('\\' == *p)
             {
-                size_t len = strlen(locuser);
-                if (len >= 2 && locuser[len - 1] == '"')
-                {
-                    locuser[len - 1] = '\0';    /* remove the trailing quote... */
-                    ++locuser;                  /* ...and the heading one       */
-                }
+                *p = '+';
+                caller_nodom = p + 1;
             }
-            /* translate backslash to '+' */
-            for (p = locuser; *p; p++)
-                if ('\\' == *p)
-                {
-                    *p = '+';
-                    locuser_nodom = p + 1;
-                }
+
+        if (0 != locuser &&
+            0 != strcasecmp(locuser, caller) &&
+            (0 == caller_nodom || 0 != strcasecmp(locuser, caller_nodom)))
+        {
+            fprintf(stderr,
+                "sshfs-win: local user \"%s\" does not match the requesting user \"%s\"\n",
+                locuser, caller);
+            exit(2);
+        }
+
+        locuser = caller;
+        locuser_nodom = caller_nodom;
+    }
+    else if (0 == locuser)
+    {
+        p = userhost;
+        while (*p && '@' != *p)
+            p++;
+        if (*p)
+        {
+            *p = '\0';
+            locuser = userhost;
         }
     }
 
@@ -302,6 +346,22 @@ static int do_svc(int argc, char *argv[])
         if (0 != passwd)
             snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     }
+
+    /*
+     * Verify host keys: remember the key on first connect (accept-new) and refuse
+     * the connection if it ever changes. Keys are kept per local user; if the local
+     * user cannot be determined fall back to a file in the installation directory,
+     * which only administrators and LocalSystem can modify.
+     */
+    if (0 != passwd)
+    {
+        opt_escape(passwd->pw_dir, escaped, sizeof escaped);
+        snprintf(knownhosts, sizeof knownhosts,
+            "-oUserKnownHostsFile=\"%s/.ssh/known_hosts\"", escaped);
+    }
+    else
+        snprintf(knownhosts, sizeof knownhosts,
+            "-oUserKnownHostsFile=/etc/known_hosts");
 
     if (1 == reg_get(cls, "Credentials"))
         snprintf(authmeth, sizeof authmeth,
@@ -318,7 +378,7 @@ static int do_svc(int argc, char *argv[])
 
     char *sshfs_argv[256] =
     {
-        sshfs, SSHFS_ARGS, idmap, authmeth, volpfx, portopt, remote, argv[2], 0,
+        sshfs, SSHFS_ARGS, idmap, authmeth, knownhosts, volpfx, portopt, remote, argv[2], 0,
     };
 
     if ('\0' == portopt[0])
