@@ -199,6 +199,7 @@ static int do_svc(int argc, char *argv[])
     "-oStrictHostKeyChecking=accept-new",\
     "-oServerAliveInterval=15",         \
     "-oServerAliveCountMax=3",          \
+    "-oConnectTimeout=10",              \
     "-oreconnect"
 
     if (3 > argc || 200 < argc)

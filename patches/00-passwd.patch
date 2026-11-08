@@ -19,16 +19,35 @@ index ff40c81..5c8d4b8 100644
  	SSHFS_OPT("delay_connect",     delay_connect, 1),
  	SSHFS_OPT("slave",             passive, 1),
  	SSHFS_OPT("passive",           passive, 1),
-@@ -1691,6 +1692,14 @@ static int sftp_init(struct conn *conn)
+@@ -1691,6 +1692,33 @@ static int sftp_init(struct conn *conn)
  
  out:
  	buf_free(&buf);
 +
++	/*
++	 * Report the result of the first connection only. On -o reconnect
++	 * sftp_init runs again and stdout is long gone.
++	 *
++	 * Do not close fd 1: a later reconnect would reuse it for the pty or
++	 * socketpair, the ssh child would then close it while setting up its
++	 * stdio and the SFTP init reply would never arrive, hanging every
++	 * file system operation while sshfs.lock is held. Point it at
++	 * /dev/null instead, which still closes the launcher's pipe.
++	 */
 +	if (sshfs.password_stdout)
 +	{
++		int devnull;
++
++		sshfs.password_stdout = 0;
 +		puts(0 == res ? "OK" : "KO");
-+		fclose(stdout);
-+		//stdout = freopen("/dev/null", "w", stdout);
++		fflush(stdout);
++		devnull = open("/dev/null", O_WRONLY);
++		if (devnull != -1)
++		{
++			dup2(devnull, 1);
++			if (devnull != 1)
++				close(devnull);
++		}
 +	}
 +
  	return res;
