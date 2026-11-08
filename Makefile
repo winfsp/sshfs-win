@@ -1,7 +1,7 @@
 MyProductName = "SSHFS-Win"
 MyCompanyName = "Navimatics LLC"
 MyDescription = "SSHFS for Windows"
-MyProductVersion = "2021.1 Beta2"
+MyProductVersion = "2026 Alpha"
 MyProductStage = "Beta"
 MyVersion = 3.7.$(shell date '+%y%j')
 ifeq ($(shell uname -m),x86_64)
